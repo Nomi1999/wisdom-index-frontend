@@ -1,0 +1,376 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Header } from './Header';
+import { Sidebar } from './Sidebar';
+import { MetricsGrid } from './MetricsGrid';
+import { ChartsSection } from './ChartsSection';
+import { AIInsights } from './AIInsights';
+import { ProfilePanel } from './ProfilePanel';
+import { ContactAdvisorPanel } from './ContactAdvisorPanel';
+import { TargetsManager } from './TargetsManager';
+import { AccountHistoryView } from './AccountHistoryView';
+import { VisualizationsView } from './VisualizationsView';
+import { ClientDashboardView } from '@/types/dashboard';
+
+interface DashboardLayoutProps {
+  clientName: string;
+  metricsData: Record<string, any>;
+  loading: boolean;
+  metricsLoaded: boolean;
+  targetsLoaded: boolean;
+  sidebarOpen: boolean;
+  setSidebarOpen: (open: boolean) => void;
+  handleLogout: () => void;
+  handleMetricCardClick: (metricName: string, category: string) => void;
+  authToken: string | null;
+  onChartDataUpdate: (chartType: 'income' | 'expense', data: any[]) => void;
+  insightsOverlayOpen: boolean;
+  insightsSlideUp: boolean;
+  buttonVisible: boolean;
+  insightsLoading: boolean;
+  insightsContent: string;
+  generateInsights: () => void;
+  closeInsights: () => void;
+  activeView: ClientDashboardView;
+  handleShowDashboard: () => void;
+  handleViewProfile: () => void;
+  handleContactAdvisor: () => void;
+  handleManageTargets: () => void;
+  handleExportData: (e: React.MouseEvent) => void;
+  handleViewAccountHistory: () => void;
+  handleViewVisualizations: () => void;
+  exportStatus: 'idle' | 'exporting' | 'exported';
+  profileLoading: boolean;
+  profileData: any;
+  profileError: boolean;
+  loadProfileData: () => void;
+  onProfileUpdate?: (updatedProfile: any) => void;
+  targetsLoading: boolean;
+  targetsError: boolean;
+  targetsData: Record<string, number>;
+  saveTargetsLoading: boolean;
+  resetTargetsLoading: boolean;
+  saveTargetsSuccess: boolean;
+  resetTargetsSuccess: boolean;
+  showResetConfirmation: boolean;
+  resetConfirmationClosing: boolean;
+  loadTargetsData: () => void;
+  saveTargets: () => void;
+  handleResetAllTargets: () => void;
+  confirmResetTargets: () => void;
+  handleCloseResetConfirmation: () => void;
+  discardTargetChanges: () => void;
+  updateTargetValue: (metricName: string, value: string) => void;
+  deleteIndividualTarget: (metricName: string) => void;
+  getTargetStatusHTML: (actualValue: number | null | undefined, targetValue: number | null | undefined) => string;
+  metricDetailModalOpen: boolean;
+  selectedMetricName: string;
+  selectedCategoryName: string;
+  handleCloseMetricDetailModal: () => void;
+  isInitialLoad: boolean;
+  metricsByCategory: Record<string, any[]>;
+  hasGeneratedInsights: boolean;
+  initialIncomeChartData: any[] | null;
+  initialExpenseChartData: any[] | null;
+  chartsPrefetched: boolean;
+}
+
+export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
+  clientName,
+  metricsData,
+  loading,
+  metricsLoaded,
+  targetsLoaded,
+  sidebarOpen,
+  setSidebarOpen,
+  handleLogout,
+  handleMetricCardClick,
+  authToken,
+  onChartDataUpdate,
+  insightsOverlayOpen,
+  insightsSlideUp,
+  buttonVisible,
+  insightsLoading,
+  insightsContent,
+  generateInsights,
+  closeInsights,
+  activeView,
+  handleShowDashboard,
+  handleViewProfile,
+  handleContactAdvisor,
+  handleManageTargets,
+  handleExportData,
+  handleViewAccountHistory,
+  handleViewVisualizations,
+  exportStatus,
+  profileLoading,
+  profileData,
+  profileError,
+  loadProfileData,
+  onProfileUpdate,
+  targetsLoading,
+  targetsError,
+  targetsData,
+  saveTargetsLoading,
+  resetTargetsLoading,
+  saveTargetsSuccess,
+  resetTargetsSuccess,
+  showResetConfirmation,
+  resetConfirmationClosing,
+  loadTargetsData,
+  saveTargets,
+  handleResetAllTargets,
+  confirmResetTargets,
+  handleCloseResetConfirmation,
+  discardTargetChanges,
+  updateTargetValue,
+  deleteIndividualTarget,
+  getTargetStatusHTML,
+  metricDetailModalOpen,
+  selectedMetricName,
+  selectedCategoryName,
+  handleCloseMetricDetailModal,
+  isInitialLoad,
+  metricsByCategory,
+  hasGeneratedInsights,
+  initialIncomeChartData,
+  initialExpenseChartData,
+  chartsPrefetched
+}) => {
+  const [sidebarWidth, setSidebarWidth] = useState<number>(224); // default to md width (14rem)
+  const collapsedSidebarWidth = 64; // 4rem expressed in px for layout spacing
+  const isDashboardView = activeView === 'dashboard';
+
+  // Update sidebar width based on screen size
+  useEffect(() => {
+    const updateSidebarWidth = () => {
+      if (window.innerWidth >= 1280) { // xl breakpoint
+        setSidebarWidth(256); // 16rem
+      } else if (window.innerWidth >= 1024) { // lg breakpoint
+        setSidebarWidth(240); // 15rem
+      } else if (window.innerWidth >= 768) { // md breakpoint
+        setSidebarWidth(224); // 14rem
+      } else if (window.innerWidth >= 640) { // sm breakpoint
+        setSidebarWidth(208); // 13rem
+      } else {
+        setSidebarWidth(192); // 12rem
+      }
+    };
+
+    updateSidebarWidth();
+    window.addEventListener('resize', updateSidebarWidth);
+    return () => window.removeEventListener('resize', updateSidebarWidth);
+  }, []);
+
+  const renderSecondaryView = () => {
+    switch (activeView) {
+      case 'profile':
+        return (
+          <div className="max-w-7xl mx-auto w-full flex flex-col gap-6 pb-12">
+            <ProfilePanel
+              profileData={profileData}
+              profileLoading={profileLoading}
+              profileError={profileError}
+              onRetry={loadProfileData}
+              onProfileUpdate={onProfileUpdate}
+            />
+          </div>
+        );
+      case 'advisor':
+        return (
+          <div className="max-w-7xl mx-auto w-full flex flex-col gap-6 pb-12">
+            <ContactAdvisorPanel />
+          </div>
+        );
+      case 'targets':
+        return (
+          <div className="max-w-7xl mx-auto w-full flex flex-col gap-6 pb-12">
+            <TargetsManager
+              loading={targetsLoading}
+              error={targetsError}
+              targetsData={targetsData}
+              saveTargetsLoading={saveTargetsLoading}
+              resetTargetsLoading={resetTargetsLoading}
+              saveTargetsSuccess={saveTargetsSuccess}
+              resetTargetsSuccess={resetTargetsSuccess}
+              showResetConfirmation={showResetConfirmation}
+              resetConfirmationClosing={resetConfirmationClosing}
+              loadTargetsData={loadTargetsData}
+              saveTargets={saveTargets}
+              handleResetAllTargets={handleResetAllTargets}
+              confirmResetTargets={confirmResetTargets}
+              handleCloseResetConfirmation={handleCloseResetConfirmation}
+              updateTargetValue={updateTargetValue}
+              deleteIndividualTarget={deleteIndividualTarget}
+              getTargetStatusHTML={getTargetStatusHTML}
+              metricsByCategory={metricsByCategory}
+              metricsData={metricsData}
+              discardChanges={discardTargetChanges}
+            />
+          </div>
+        );
+      case 'account-history':
+        return (
+          <div className="max-w-7xl mx-auto w-full flex flex-col gap-6 pb-12">
+            <AccountHistoryView authToken={authToken} />
+          </div>
+        );
+      case 'visualizations':
+        return (
+          <div className="w-full h-full flex flex-col">
+            <VisualizationsView authToken={authToken} />
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+  return (
+    <div
+      className={`bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 flex ${isDashboardView ? 'h-screen overflow-hidden' : 'min-h-screen w-full'
+        }`}
+    >
+      {/* Floating Close Button When Sidebar Expanded */}
+      {sidebarOpen && (
+        <button
+          onClick={() => {
+            setSidebarOpen(false);
+            // Emit custom event for chart components to listen to
+            window.dispatchEvent(new CustomEvent('sidebarToggle'));
+          }}
+          className="fixed left-4 top-4 z-[70] bg-blue-900/90 hover:bg-blue-800 text-white p-2 rounded-lg shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white/50"
+          aria-label="Collapse sidebar"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      )}
+
+      {/* Animated Sidebar */}
+      <Sidebar
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        handleLogout={handleLogout}
+        handleShowDashboard={handleShowDashboard}
+        handleViewProfile={handleViewProfile}
+        handleContactAdvisor={handleContactAdvisor}
+        handleManageTargets={handleManageTargets}
+        handleExportData={handleExportData}
+        handleViewAccountHistory={handleViewAccountHistory}
+        handleViewVisualizations={handleViewVisualizations}
+        exportStatus={exportStatus}
+        clientName={clientName}
+        activeView={activeView}
+      />
+
+      {/* Main Content Area - Responsive margin */}
+      <div
+        className={`flex-1 flex flex-col transition-[margin-left] duration-300 ease-in-out ${isDashboardView ? 'h-full' : 'min-h-screen'
+          }`}
+        style={{
+          marginLeft: sidebarOpen ? sidebarWidth : collapsedSidebarWidth,
+          willChange: 'margin-left',
+          width: isDashboardView ? 'auto' : `calc(100vw - ${sidebarOpen ? sidebarWidth : collapsedSidebarWidth}px)`,
+          // Optimize for GPU acceleration during animation
+          transform: 'translateZ(0)',
+          backfaceVisibility: 'hidden' as const
+        }}
+      >
+        {/* Header */}
+        <Header
+          clientName={clientName}
+          setSidebarOpen={setSidebarOpen}
+          isInitialLoad={isInitialLoad}
+          sidebarOpen={sidebarOpen}
+        />
+
+        {/* Main Content */}
+        <main
+          className={`flex-1 ${activeView === 'visualizations' ? 'p-2' : 'p-3 sm:p-4 lg:p-6'} flex flex-col ${isDashboardView ? 'min-h-0 overflow-hidden' : 'min-h-[auto] overflow-visible'
+            }`}
+        >
+          <div className={`${isDashboardView ? 'flex' : 'hidden'} flex-1 min-h-0`}>
+            <div className={`grid grid-cols-1 xl:grid-cols-[1fr_400px] gap-2 sm:gap-2 md:gap-3 lg:gap-4 w-full flex-1 min-h-0 ${isInitialLoad ? '' : ''}`}>
+              <div className="min-h-0 overflow-hidden flex flex-col">
+                <MetricsGrid
+                  metricsData={metricsData}
+                  loading={loading}
+                  metricsLoaded={metricsLoaded}
+                  targetsLoaded={targetsLoaded}
+                  handleMetricCardClick={handleMetricCardClick}
+                  isInitialLoad={isInitialLoad}
+                />
+              </div>
+
+              <div className={`flex flex-col gap-1 sm:gap-1.5 md:gap-2 lg:gap-3 min-h-0 pl-0 lg:pl-3 border-l-0 lg:border-l-2 border-gray-200 relative ${isInitialLoad ? '' : ''}`}>
+                <div className="flex-1 min-h-0 overflow-hidden">
+                  <ChartsSection
+                    authToken={authToken}
+                    onChartDataUpdate={onChartDataUpdate}
+                    isInitialLoad={isInitialLoad}
+                    initialIncomeData={initialIncomeChartData || undefined}
+                    initialExpenseData={initialExpenseChartData || undefined}
+                    prefetchComplete={chartsPrefetched}
+                  />
+                </div>
+
+                <div className="flex-shrink-0">
+                  <AIInsights
+                    insightsOverlayOpen={insightsOverlayOpen}
+                    insightsSlideUp={insightsSlideUp}
+                    buttonVisible={buttonVisible}
+                    insightsLoading={insightsLoading}
+                    insightsContent={insightsContent}
+                    generateInsights={generateInsights}
+                    closeInsights={closeInsights}
+                    isInitialLoad={isInitialLoad}
+                    hasGeneratedInsights={hasGeneratedInsights}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {!isDashboardView && (
+            <div className="w-full">
+              {renderSecondaryView()}
+            </div>
+          )}
+        </main>
+      </div>
+      {/* Metric Detail Modal */}
+      {metricDetailModalOpen && (
+        <div className={`fixed inset-0 flex items-center justify-center z-1000 opacity-100 visible transition-all duration-300`} onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            handleCloseMetricDetailModal();
+          }
+        }}>
+          <div className={`w-11/12 max-w-1100px max-h-90vh bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col transform scale-92 translate-y-5 opacity-0 border border-gray-200 backdrop-blur-lg active`}>
+            <header className="flex justify-between items-center p-6 p-8 border-b border-gray-200 bg-white flex-shrink-0">
+              <h1 className="m-0 text-gray-900 text-2xl font-semibold tracking-tight">Metric Details</h1>
+              <button
+                className="bg-none border-none text-gray-500 text-2xl font-light w-10 h-10 flex items-center justify-center rounded-md transition-all duration-150 cursor-pointer hover:bg-gray-100 hover:text-gray-700 active:scale-95"
+                aria-label="Close"
+                onClick={handleCloseMetricDetailModal}
+              >
+                <span>&times;</span>
+              </button>
+            </header>
+            <main className="p-0 overflow-hidden flex-1 min-h-0 flex flex-col">
+              <div className="flex flex-col items-center justify-center p-12 text-gray-600">
+                <div className="w-10 h-10 border-3 border-gray-300 border-t-blue-900 rounded-full animate-spin mb-4"></div>
+                <p>Loading metric details...</p>
+              </div>
+            </main>
+            <footer className="p-4 p-8 border-t border-gray-200 bg-gray-50 text-right flex-shrink-0">
+              <button className="bg-blue-900 text-white font-medium py-2.5 px-6 rounded-md border-none cursor-pointer transition-all duration-150 hover:bg-blue-1100" onClick={handleCloseMetricDetailModal}>Close</button>
+            </footer>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
