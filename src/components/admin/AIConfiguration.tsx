@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
 import { isSuperuser, getAuthToken } from '@/utils/sessionAuth';
+import { getApiBaseUrl, buildApiUrl } from '@/lib/api';
 import { Loader2 } from 'lucide-react';
 
 interface AIConfigurationProps {
@@ -65,7 +66,6 @@ export default function AIConfiguration({ onNavigateBack }: AIConfigurationProps
   const [isValidatingUrl, setIsValidatingUrl] = useState(false);
   const [urlValid, setUrlValid] = useState<boolean | null>(null);
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5001';
 
   useEffect(() => {
     fetchConfig(true); // Always fetch the API key on initial load
@@ -81,7 +81,9 @@ export default function AIConfiguration({ onNavigateBack }: AIConfigurationProps
       }
 
       // Build URL with query parameter if we want to include the API key
-      const url = `${API_BASE_URL}/api/admin/ai-config${includeApiKey ? '?include_api_key=true' : ''}`;
+      const url = includeApiKey
+        ? buildApiUrl('/api/admin/ai-config?include_api_key=true')
+        : buildApiUrl('/api/admin/ai-config');
       const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -129,7 +131,7 @@ export default function AIConfiguration({ onNavigateBack }: AIConfigurationProps
         payload.ai_api_key = currentApiKey.trim();
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/admin/ai-config`, {
+      const response = await fetch(buildApiUrl('/api/admin/ai-config'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -148,7 +150,7 @@ export default function AIConfiguration({ onNavigateBack }: AIConfigurationProps
       // Refresh config data (including API key to properly display it)
       // but without showing loading state to avoid page disappearing
       if (token) {
-        const url = `${API_BASE_URL}/api/admin/ai-config?include_api_key=true`;
+        const url = buildApiUrl('/api/admin/ai-config?include_api_key=true');
         const refreshResponse = await fetch(url, {
           headers: {
             'Authorization': `Bearer ${token}`,

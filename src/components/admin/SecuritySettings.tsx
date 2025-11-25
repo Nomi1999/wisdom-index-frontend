@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
 import { isSuperuser, getAuthToken } from '@/utils/sessionAuth';
+import { buildApiUrl } from '@/lib/api';
 
 interface SecurityCodeStatus {
   security_code_exists: boolean;
@@ -83,7 +84,6 @@ export function SecuritySettings({ onNavigateBack }: SecuritySettingsProps) {
   const [errorMessage, setErrorMessage] = useState('');
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
   
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
 
   useEffect(() => {
     fetchSecurityCodeStatus();
@@ -92,7 +92,7 @@ export function SecuritySettings({ onNavigateBack }: SecuritySettingsProps) {
   const fetchSecurityCodeStatus = async () => {
     try {
       const token = getAuthToken();
-      const response = await fetch(`${API_BASE_URL}/api/admin/security-code`, {
+      const response = await fetch(buildApiUrl('/api/admin/security-code'), {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -122,7 +122,7 @@ export function SecuritySettings({ onNavigateBack }: SecuritySettingsProps) {
     setIsValidating(true);
     try {
       const token = getAuthToken();
-      const response = await fetch(`${API_BASE_URL}/api/admin/security-code/validate`, {
+      const response = await fetch(buildApiUrl('/api/admin/security-code/validate'), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -198,7 +198,7 @@ export function SecuritySettings({ onNavigateBack }: SecuritySettingsProps) {
     setIsUpdating(true);
     try {
       const token = getAuthToken();
-      const response = await fetch(`${API_BASE_URL}/api/admin/security-code`, {
+      const response = await fetch(buildApiUrl('/api/admin/security-code'), {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
