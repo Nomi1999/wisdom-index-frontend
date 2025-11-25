@@ -28,13 +28,13 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
   loading
 }) => {
   const formatAccountDisplay = (account: Account) => {
-    const name = account.account_name || account.account_id;
-    const type = account.account_type ? ` (${account.account_type})` : '';
-    const value = account.current_value 
-      ? ` - $${account.current_value.toLocaleString()}` 
+    const subtypeAndId = account.account_name || account.account_id;
+    const factTypeName = account.account_type ? ` ${account.account_type}` : '';
+    const value = account.current_value
+      ? ` - $${account.current_value.toLocaleString()}`
       : '';
     
-    return `${name}${type}${value}`;
+    return `${subtypeAndId}${factTypeName}${value}`;
   };
 
   return (
