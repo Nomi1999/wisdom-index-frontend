@@ -593,8 +593,11 @@ export default function Dashboard() {
       return;
     }
 
-    // Show loading state in button
+    // Show loading state and open overlay immediately
     setInsightsLoading(true);
+    setInsightsContent('');
+    setInsightsOverlayOpen(true);
+    setTimeout(() => setInsightsSlideUp(true), 50);
 
     try {
       // Collect all cached metrics
@@ -617,7 +620,8 @@ export default function Dashboard() {
       });
 
       const requestBody: any = {
-        include_summary: false
+        include_summary: false,
+        stream: true
       };
 
       if (Object.keys(metricsDataForAI).length > 0) {
@@ -633,49 +637,68 @@ export default function Dashboard() {
         body: JSON.stringify(requestBody)
       });
 
-      const responseText = await response.text();
-      const contentType = response.headers.get('content-type')?.toLowerCase() || '';
-      let data: any = {};
-      if (responseText && contentType.includes('application/json')) {
+      const contentType = response.headers.get('content-type');
+
+      if (contentType && contentType.includes('application/json')) {
+        // Handle JSON response (fallback for errors or non-streaming backend)
+        const responseText = await response.text();
+        let data: any = {};
         try {
           data = JSON.parse(responseText);
         } catch (parseError) {
-          console.error('Failed to parse insights JSON:', parseError, responseText);
           data = { message: responseText };
         }
-      } else if (responseText) {
-        data = { message: responseText };
+
+        if (!response.ok) {
+           throw new Error(
+            data?.error ||
+            data?.message ||
+            (typeof data === 'string' ? data : '') ||
+            responseText ||
+            'Failed to generate insights'
+          );
+        }
+        
+        if (data.insights) {
+            setInsightsContent(data.insights);
+            setCachedInsights(data.insights);
+            setHasGeneratedInsights(true);
+        } else {
+            throw new Error('No insights returned from server');
+        }
+
+      } else {
+        // Handle Streaming response
+        if (!response.ok) {
+            const text = await response.text();
+             throw new Error(text || 'Failed to generate insights');
+        }
+
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+        
+        if (!reader) {
+            throw new Error('Response body is not readable');
+        }
+        
+        let accumulatedContent = '';
+        
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            
+            const chunk = decoder.decode(value, { stream: true });
+            accumulatedContent += chunk;
+            setInsightsContent(accumulatedContent);
+        }
+
+        setCachedInsights(accumulatedContent);
+        setHasGeneratedInsights(true);
       }
-
-      if (!response.ok) {
-        throw new Error(
-          data?.error ||
-          data?.message ||
-          (typeof data === 'string' ? data : '') ||
-          responseText ||
-          'Failed to generate insights'
-        );
-      }
-
-      if (!data?.insights) {
-        throw new Error('Insights data missing from server response.');
-      }
-
-      // Store the raw insights text (formatting will be handled in AIInsights component)
-      setCachedInsights(data.insights);
-      setHasGeneratedInsights(true);
-      setInsightsContent(data.insights);
-
-      // Hide button and show slide-up window
-      setInsightsOverlayOpen(true);
-      setTimeout(() => setInsightsSlideUp(true), 50);
 
     } catch (error: any) {
       console.error('Error generating insights:', error);
       setInsightsContent(`Error: ${error.message || 'Unable to generate insights at this time. Please try again later.'}`);
-      // Still show the slide-up window with error
-      setInsightsOverlayOpen(true);
-      setTimeout(() => setInsightsSlideUp(true), 50);
     } finally {
       setInsightsLoading(false);
     }

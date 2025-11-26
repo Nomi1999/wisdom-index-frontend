@@ -25,7 +25,57 @@ export const AIInsights: React.FC<AIInsightsProps> = ({
   isInitialLoad,
   hasGeneratedInsights
 }) => {
+  // Local state for typewriter effect
+  const [displayedContent, setDisplayedContent] = React.useState('');
   
+  // Reset displayed content when loading starts or overlay closes
+  React.useEffect(() => {
+    if (insightsLoading) {
+      setDisplayedContent('');
+    }
+  }, [insightsLoading]);
+
+  // Typewriter effect logic
+  React.useEffect(() => {
+    if (!insightsOverlayOpen) return;
+
+    // If we have caught up, do nothing
+    if (displayedContent === insightsContent) return;
+
+    // If the content shrank (reset), sync immediately
+    if (insightsContent.length < displayedContent.length) {
+        setDisplayedContent(insightsContent);
+        return;
+    }
+
+    // Calculate how much to add to "catch up" smoothly
+    const diff = insightsContent.length - displayedContent.length;
+    
+    // Dynamic chunk size: if we are far behind (e.g. network burst), render faster
+    // If we are close, render character by character for the "AI feel"
+    let chunkSize = 1;
+    let delay = 40; // Base delay in ms (very deliberate typing speed)
+
+    if (diff > 300) {
+        // Only jump if significantly behind
+        chunkSize = 3;
+        delay = 5;
+    } else if (diff > 100) {
+        chunkSize = 2;
+        delay = 10;
+    } else if (diff > 30) {
+        // If slightly behind, just type faster but still 1 char at a time
+        chunkSize = 1;
+        delay = 15;
+    }
+
+    const timeout = setTimeout(() => {
+      setDisplayedContent(insightsContent.slice(0, displayedContent.length + chunkSize));
+    }, delay);
+
+    return () => clearTimeout(timeout);
+  }, [insightsContent, displayedContent, insightsOverlayOpen]);
+
   // Format insights text with proper HTML structure
   const formatInsightsText = (text: string) => {
     if (!text) return '';
@@ -155,14 +205,18 @@ export const AIInsights: React.FC<AIInsightsProps> = ({
             
             {/* Content */}
             <div className="p-6 overflow-y-auto bg-white flex-1">
-              {insightsLoading ? (
+              {insightsLoading && !displayedContent ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <div className="w-12 h-12 border-3 border-gray-300 border-t-blue-500 rounded-full animate-spin mb-4"></div>
                   <p className="m-0 text-base font-medium text-gray-700">Generating insights...</p>
                 </div>
-              ) : insightsContent ? (
+              ) : displayedContent ? (
                 <div className="text-gray-800 leading-relaxed prose prose-gray max-w-none">
-                  <div dangerouslySetInnerHTML={{ __html: formatInsightsText(insightsContent) }} />
+                  <div dangerouslySetInnerHTML={{ __html: formatInsightsText(displayedContent) }} />
+                  {/* Cursor effect for streaming */}
+                  {(insightsLoading || displayedContent.length < insightsContent.length) && (
+                    <span className="inline-block w-2 h-4 ml-1 bg-blue-500 animate-pulse align-middle"></span>
+                  )}
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 text-gray-500">

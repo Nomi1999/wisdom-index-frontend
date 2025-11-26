@@ -45,11 +45,65 @@ export function AdminAIInsights({ onBack }: AdminAIInsightsProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Typewriter effect state
+  const [displayedContent, setDisplayedContent] = useState('');
+
   useEffect(() => {
     loadClients();
     // Load cached insights from sessionStorage on component mount
     loadCachedInsights();
   }, []);
+
+  // Reset displayed content when generating starts or client changes
+  useEffect(() => {
+    if (isGeneratingInsights) {
+      setDisplayedContent('');
+    }
+  }, [isGeneratingInsights]);
+
+  useEffect(() => {
+    // Reset if insights cleared
+    if (!insights) {
+        setDisplayedContent('');
+        return;
+    }
+
+    // If we have caught up, do nothing
+    if (displayedContent === insights) return;
+
+    // If the content shrank (reset), sync immediately
+    if (insights.length < displayedContent.length) {
+        setDisplayedContent(insights);
+        return;
+    }
+
+    // Calculate how much to add to "catch up" smoothly
+    const diff = insights.length - displayedContent.length;
+    
+    // Dynamic chunk size: if we are far behind (e.g. network burst), render faster
+    // If we are close, render character by character for the "AI feel"
+    let chunkSize = 1;
+    let delay = 40; // Base delay in ms (very deliberate typing speed)
+
+    if (diff > 300) {
+        // Only jump if significantly behind
+        chunkSize = 3;
+        delay = 5;
+    } else if (diff > 100) {
+        chunkSize = 2;
+        delay = 10;
+    } else if (diff > 30) {
+        // If slightly behind, just type faster but still 1 char at a time
+        chunkSize = 1;
+        delay = 15;
+    }
+
+    const timeout = setTimeout(() => {
+      setDisplayedContent(insights.slice(0, displayedContent.length + chunkSize));
+    }, delay);
+
+    return () => clearTimeout(timeout);
+  }, [insights, displayedContent]);
 
   useEffect(() => {
     // Close dropdown when clicking outside
@@ -198,9 +252,11 @@ export function AdminAIInsights({ onBack }: AdminAIInsightsProps) {
     if (clientInsightsCache.has(client.client_id)) {
       const cachedData = clientInsightsCache.get(client.client_id)!;
       setInsights(cachedData.insights);
+      setDisplayedContent(cachedData.insights); // Set directly to skip typing effect
       setSummary(cachedData.summary);
     } else {
       setInsights('');
+      setDisplayedContent('');
       setSummary('');
     }
   };
@@ -221,6 +277,7 @@ export function AdminAIInsights({ onBack }: AdminAIInsightsProps) {
     if (clientInsightsCache.has(selectedClient.client_id)) {
       const cachedData = clientInsightsCache.get(selectedClient.client_id)!;
       setInsights(cachedData.insights);
+      setDisplayedContent(cachedData.insights); // Set directly to skip typing effect
       setSummary(cachedData.summary);
       return;
     }
@@ -248,30 +305,75 @@ export function AdminAIInsights({ onBack }: AdminAIInsightsProps) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          include_summary: true
+          include_summary: true,
+          stream: true
         })
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        const newInsights = data.insights || '';
-        const newSummary = data.summary || '';
-        
-        setInsights(newInsights);
-        setSummary(newSummary);
-        
-        // Cache the insights for this client to avoid regenerating during the session
-        setClientInsightsCache(prev => {
-          const newCache = new Map(prev);
-          newCache.set(selectedClient.client_id, { insights: newInsights, summary: newSummary });
-          // Save to sessionStorage for persistence across navigation
-          saveCachedInsights(newCache);
-          return newCache;
-        });
+      const contentType = response.headers.get('content-type');
+
+      if (contentType && contentType.includes('application/json')) {
+        // Handle JSON response (fallback)
+        if (response.ok) {
+            const data = await response.json();
+            const newInsights = data.insights || '';
+            const newSummary = data.summary || '';
+            
+            setInsights(newInsights);
+            setSummary(newSummary);
+            
+            // Cache the insights
+            setClientInsightsCache(prev => {
+                const newCache = new Map(prev);
+                newCache.set(selectedClient.client_id, { insights: newInsights, summary: newSummary });
+                saveCachedInsights(newCache);
+                return newCache;
+            });
+        } else {
+            const errorData = await response.json().catch(() => ({}));
+            setError(errorData.error || 'Failed to generate insights');
+        }
       } else {
-        const errorData = await response.json().catch(() => ({}));
-        setError(errorData.error || 'Failed to generate insights');
+         // Handle Streaming response
+         if (!response.ok) {
+            const text = await response.text();
+            setError(text || 'Failed to generate insights');
+            setIsGeneratingInsights(false);
+            return;
+         }
+
+         const reader = response.body?.getReader();
+         const decoder = new TextDecoder();
+
+         if (!reader) {
+            setError('Response body is not readable');
+            setIsGeneratingInsights(false);
+            return;
+         }
+
+         let accumulatedContent = '';
+         
+         while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            accumulatedContent += chunk;
+            setInsights(accumulatedContent);
+         }
+
+         // After streaming is done, cache the result
+         // Note: Streaming doesn't currently return the summary separately. 
+         // We might miss the summary if we only stream insights.
+         // For now, we'll just cache what we have.
+         setClientInsightsCache(prev => {
+            const newCache = new Map(prev);
+            newCache.set(selectedClient.client_id, { insights: accumulatedContent, summary: '' });
+            saveCachedInsights(newCache);
+            return newCache;
+        });
       }
+
     } catch (error) {
       console.error('Error generating insights:', error);
       setError('Failed to generate insights');
@@ -550,7 +652,7 @@ export function AdminAIInsights({ onBack }: AdminAIInsightsProps) {
       )}
 
       {/* AI Insights */}
-      {insights && (
+      {(insights || isGeneratingInsights) && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -564,10 +666,13 @@ export function AdminAIInsights({ onBack }: AdminAIInsightsProps) {
                 Generated for {selectedClient?.first_name} {selectedClient?.last_name}
               </Badge>
             </div>
-            <div
-              className="text-gray-800 leading-relaxed prose prose-gray max-w-none text-sm"
-              dangerouslySetInnerHTML={{ __html: formatInsightsText(insights) }}
-            />
+            <div className="text-gray-800 leading-relaxed prose prose-gray max-w-none text-sm">
+               <div dangerouslySetInnerHTML={{ __html: formatInsightsText(displayedContent) }} />
+               {/* Cursor effect for streaming */}
+               {(isGeneratingInsights || displayedContent.length < insights.length) && (
+                 <span className="inline-block w-2 h-4 ml-1 bg-blue-500 animate-pulse align-middle"></span>
+               )}
+            </div>
           </Card>
         </motion.div>
       )}
