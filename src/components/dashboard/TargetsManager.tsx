@@ -1,7 +1,6 @@
-'use client';
-
 import React from 'react';
 import { motion } from 'framer-motion';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 interface TargetsManagerProps {
   loading: boolean;
@@ -137,21 +136,9 @@ export const TargetsManager: React.FC<TargetsManagerProps> = ({
       y: 0, 
       scale: 1,
       transition: {
-        type: "spring",
+        type: "spring" as const,
         stiffness: 100,
         damping: 15
-      }
-    }
-  };
-
-  const cardHoverVariants = {
-    rest: { scale: 1 },
-    hover: { 
-      scale: 1.02,
-      transition: {
-        type: "spring",
-        stiffness: 400,
-        damping: 25
       }
     }
   };
@@ -160,35 +147,35 @@ export const TargetsManager: React.FC<TargetsManagerProps> = ({
     <>
       <div className="space-y-6">
          {/* Enhanced Header Section */}
-         <header className="bg-white rounded-2xl shadow-lg border border-blue-100/50 p-6 sm:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative overflow-hidden backdrop-blur-sm">
+         <header className="bg-white rounded-2xl shadow-lg border border-blue-100/50 p-4 sm:p-6 flex flex-col xl:flex-row xl:items-center justify-between gap-4 relative overflow-hidden backdrop-blur-sm">
             {/* Enhanced decorative background accent */}
             <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-100/40 to-blue-200/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 opacity-70 pointer-events-none"></div>
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-blue-50/30 to-transparent rounded-full blur-2xl translate-y-1/2 -translate-x-1/4 opacity-60 pointer-events-none"></div>
             
            <div className="relative z-10">
-             <h1 className="text-4xl font-bold text-gray-900 tracking-tight bg-gradient-to-r from-blue-950 to-blue-700 bg-clip-text text-transparent">
+             <h1 className="text-2xl font-bold text-gray-900 tracking-tight bg-gradient-to-r from-blue-950 to-blue-700 bg-clip-text text-transparent">
                Financial Targets
              </h1>
-             <p className="text-gray-600 mt-3 text-lg max-w-2xl leading-relaxed">
+             <p className="text-gray-600 mt-1 text-sm max-w-2xl leading-relaxed">
                Set personalized goals for your financial metrics. These targets drive your Wisdom Index and help track your progress towards financial freedom.
              </p>
            </div>
           
-           <div className="flex flex-wrap items-center gap-4 relative z-10">
+           <div className="flex items-center gap-2 relative z-10 flex-nowrap shrink-0 overflow-x-auto pb-1 sm:pb-0">
               <button
-               className="bg-white/80 backdrop-blur-sm text-gray-700 border border-gray-200/80 py-3 px-6 rounded-xl font-medium transition-all duration-200 hover:bg-white hover:text-gray-900 hover:border-gray-300 hover:shadow-md hover:-translate-y-0.5 shadow-sm group"
+               className="bg-white/80 backdrop-blur-sm text-gray-700 border border-gray-200/80 py-2 px-4 rounded-lg font-medium text-sm transition-all duration-200 hover:bg-white hover:text-gray-900 hover:border-gray-300 hover:shadow-md hover:-translate-y-0.5 shadow-sm group whitespace-nowrap"
                onClick={discardChanges}
              >
                <span className="flex items-center gap-2">
                  <svg className="w-4 h-4 text-gray-500 group-hover:text-gray-700 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
                  </svg>
-                 Revert Changes
+                 Revert
                </span>
              </button>
              
              <button
-               className={`bg-white/80 backdrop-blur-sm border border-red-200/80 text-red-600 py-3 px-6 rounded-xl font-medium transition-all duration-200 hover:bg-red-50/80 hover:border-red-300/80 hover:shadow-md hover:-translate-y-0.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 group ${
+               className={`bg-white/80 backdrop-blur-sm border border-red-200/80 text-red-600 py-2 px-4 rounded-lg font-medium text-sm transition-all duration-200 hover:bg-red-50/80 hover:border-red-300/80 hover:shadow-md hover:-translate-y-0.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 group whitespace-nowrap ${
                  resetTargetsSuccess ? 'bg-green-50/80 border-green-200/80 text-green-700' : ''
                }`}
                onClick={handleResetAllTargets}
@@ -203,11 +190,11 @@ export const TargetsManager: React.FC<TargetsManagerProps> = ({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                   </svg>
                 )}
-               {resetTargetsLoading ? 'Resetting...' : resetTargetsSuccess ? 'Reset Complete' : 'Reset All'}
+               {resetTargetsLoading ? 'Resetting...' : resetTargetsSuccess ? 'Reset' : 'Reset All'}
              </button>
             
              <button
-               className={`bg-gradient-to-r from-blue-900 to-blue-800 text-white py-3 px-7 rounded-xl font-semibold transition-all duration-200 hover:from-blue-800 hover:to-blue-700 shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex items-center gap-2 group ${
+               className={`bg-gradient-to-r from-blue-900 to-blue-800 text-white py-2 px-4 rounded-lg font-semibold text-sm transition-all duration-200 hover:from-blue-800 hover:to-blue-700 shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex items-center gap-2 group whitespace-nowrap ${
                  saveTargetsSuccess ? 'from-green-600 to-green-700 hover:from-green-700 hover:to-green-800' : ''
                }`}
                onClick={saveTargets}
@@ -222,7 +209,7 @@ export const TargetsManager: React.FC<TargetsManagerProps> = ({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
                   </svg>
                )}
-               {saveTargetsLoading ? 'Saving...' : saveTargetsSuccess ? 'Changes Saved' : 'Save Targets'}
+               {saveTargetsLoading ? 'Saving...' : saveTargetsSuccess ? 'Saved' : 'Save Targets'}
              </button>
            </div>
         </header>
@@ -246,18 +233,19 @@ export const TargetsManager: React.FC<TargetsManagerProps> = ({
               initial="hidden"
               animate="visible"
             >
-              {Object.entries(metricsByCategory).map(([category, categoryMetrics]) => {
-                 const categoryColor = getCategoryColor(category);
-                 const categoryBg = getCategoryBg(category);
-                 
-                 return (
-                 <motion.section 
-                   key={category} 
-                   variants={itemVariants}
-                   className="bg-white rounded-2xl border border-gray-200/60 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden backdrop-blur-sm group"
-                   whileHover={{ y: -2 }}
-                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                 >
+               {Object.entries(metricsByCategory).map(([category, categoryMetrics], index) => {
+                  const categoryColor = getCategoryColor(category);
+                  const categoryBg = getCategoryBg(category);
+                  
+                  return (
+                   <motion.section 
+                     key={category} 
+                     className="bg-white rounded-2xl border border-gray-200/60 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden backdrop-blur-sm group"
+                     initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                     animate={{ opacity: 1, y: 0, scale: 1 }}
+                     transition={{ type: "spring" as const, stiffness: 100, damping: 15, delay: index * 0.1 }}
+                     whileHover={{ y: -2 }}
+                  >
                    <div className={`px-8 py-6 border-b border-gray-100/80 flex items-center justify-between ${categoryBg} relative overflow-hidden`}>
                      <div className={`pl-4 border-l-4 ${categoryColor}`}>
                        <h3 className={`text-xl font-bold tracking-tight ${categoryColor.split(' ')[1]} group-hover:scale-105 transition-transform duration-200`}>
@@ -279,13 +267,12 @@ export const TargetsManager: React.FC<TargetsManagerProps> = ({
                          (currentValue >= targetValue ? 'above' : 'below') : 'none';
 
                        return (
-                         <motion.div
-                           key={metric.name}
-                           variants={cardHoverVariants}
-                           initial="rest"
-                           whileHover="hover"
-                           className="flex flex-col gap-4 p-6 rounded-2xl border border-gray-100 bg-gradient-to-br from-white to-gray-50/50 hover:from-white hover:to-blue-50/30 hover:border-blue-200 transition-all duration-300 shadow-sm hover:shadow-md group/card"
-                         >
+                          <motion.div
+                            key={metric.name}
+                            className="flex flex-col gap-4 p-6 rounded-2xl border border-gray-100 bg-gradient-to-br from-white to-gray-50/50 hover:from-white hover:to-blue-50/30 hover:border-blue-200 transition-all duration-300 shadow-sm hover:shadow-md group/card"
+                            whileHover={{ scale: 1.02 }}
+                            transition={{ type: "spring" as const, stiffness: 400, damping: 25 }}
+                          >
                            <div className="flex justify-between items-start gap-3">
                              <label className="font-bold text-gray-800 text-sm leading-tight flex-1" htmlFor={`target-${metric.name}`}>
                                {metric.title}
@@ -409,74 +396,16 @@ export const TargetsManager: React.FC<TargetsManagerProps> = ({
         </main>
       </div>
 
-      {/* Enhanced Reset Confirmation Modal */}
-      {showResetConfirmation && (
-        <motion.div
-          className={`fixed inset-0 flex items-center justify-center z-[1200] bg-gray-900/70 backdrop-blur-md transition-all duration-300 ${
-            resetConfirmationClosing ? 'opacity-0 pointer-events-none' : 'opacity-100'
-          }`}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              handleCloseResetConfirmation();
-            }
-          }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        >
-          <motion.div
-            className={`w-11/12 max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 ${
-              resetConfirmationClosing ? 'opacity-0 scale-95 translate-y-4' : 'opacity-100 scale-100 translate-y-0'
-            }`}
-            initial={{ scale: 0.9, y: 20 }}
-            animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0.9, y: 20 }}
-          >
-            <header className="flex justify-between items-center p-8 border-b border-gray-100/80 bg-gradient-to-r from-white to-gray-50/50">
-              <h2 className="text-2xl font-bold text-gray-900">Confirm Reset</h2>
-              <button
-                className="text-gray-400 hover:text-gray-600 transition-all duration-200 p-2 rounded-full hover:bg-gray-100"
-                aria-label="Close"
-                onClick={handleCloseResetConfirmation}
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-              </button>
-            </header>
-            <main className="p-10 text-center">
-               <div className="w-24 h-24 bg-gradient-to-br from-red-50 to-red-100 rounded-full flex items-center justify-center mx-auto mb-6 text-red-500 shadow-xl">
-                 <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                 </svg>
-               </div>
-              <p className="text-gray-700 leading-relaxed text-lg">
-                Are you sure you want to <span className="font-bold text-red-600">reset all targets</span>? 
-              </p>
-              <p className="text-gray-500 mt-3 leading-relaxed">
-                This action cannot be undone and all your custom goals will be permanently lost.
-              </p>
-            </main>
-            <footer className="flex justify-end gap-4 p-8 border-t border-gray-100/80 bg-gray-50/50">
-              <button
-                className="bg-white border border-gray-300 text-gray-700 py-3 px-6 rounded-xl font-medium hover:bg-gray-50 hover:text-gray-900 transition-all duration-200 shadow-sm hover:shadow-md hover:-translate-y-0.5"
-                onClick={handleCloseResetConfirmation}
-              >
-                Cancel
-              </button>
-              <button
-                className="bg-gradient-to-r from-red-600 to-red-700 text-white py-3 px-6 rounded-xl font-semibold hover:from-red-700 hover:to-red-800 transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center gap-2"
-                onClick={confirmResetTargets}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                </svg>
-                Yes, Reset Everything
-              </button>
-            </footer>
-          </motion.div>
-        </motion.div>
-      )}
+      {/* Enhanced Reset Confirmation Modal - Replaced with standard ConfirmDialog */}
+      <ConfirmDialog
+        isOpen={showResetConfirmation}
+        onClose={handleCloseResetConfirmation}
+        onConfirm={confirmResetTargets}
+        title="Confirm Reset"
+        description="Are you sure you want to reset all targets? This action cannot be undone and all your custom goals will be permanently lost."
+        confirmText="Yes, Reset Everything"
+        cancelText="Cancel"
+      />
     </>
   );
 };

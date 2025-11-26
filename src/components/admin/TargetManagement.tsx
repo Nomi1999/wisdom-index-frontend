@@ -747,7 +747,6 @@ export function TargetManagement({ clientId }: TargetManagementProps) {
         description={`Are you sure you want to delete the target for ${deleteConfirmDialog.metricName}? This action cannot be undone.`}
         confirmText="Delete Target"
         cancelText="Cancel"
-        confirmButtonClass="bg-red-600 hover:bg-red-700 text-white"
       />
       
       {/* Enhanced Reset All Targets Confirmation Dialog */}
@@ -759,7 +758,6 @@ export function TargetManagement({ clientId }: TargetManagementProps) {
         description="Are you sure you want to reset ALL targets for this client? This will permanently remove all custom targets and cannot be undone."
         confirmText="Reset All Targets"
         cancelText="Cancel"
-        confirmButtonClass="bg-red-600 hover:bg-red-700 text-white"
       />
     </div>
   );
