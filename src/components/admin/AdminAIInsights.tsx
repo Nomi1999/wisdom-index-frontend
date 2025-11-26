@@ -45,7 +45,7 @@ export function AdminAIInsights({ onBack }: AdminAIInsightsProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Typewriter effect state
+// Typewriter effect state
   const [displayedContent, setDisplayedContent] = useState('');
 
   useEffect(() => {
@@ -60,6 +60,19 @@ export function AdminAIInsights({ onBack }: AdminAIInsightsProps) {
       setDisplayedContent('');
     }
   }, [isGeneratingInsights]);
+
+// Auto-scroll browser window to bottom when content updates
+  useEffect(() => {
+    if (displayedContent) {
+      // Use setTimeout to ensure the DOM has updated with new content
+      setTimeout(() => {
+        window.scrollTo({
+          top: document.documentElement.scrollHeight,
+          behavior: 'smooth'
+        });
+      }, 50);
+    }
+  }, [displayedContent]);
 
   useEffect(() => {
     // Reset if insights cleared
@@ -666,7 +679,7 @@ export function AdminAIInsights({ onBack }: AdminAIInsightsProps) {
                 Generated for {selectedClient?.first_name} {selectedClient?.last_name}
               </Badge>
             </div>
-            <div className="text-gray-800 leading-relaxed prose prose-gray max-w-none text-sm">
+<div className="text-gray-800 leading-relaxed prose prose-gray max-w-none text-sm">
                <div dangerouslySetInnerHTML={{ __html: formatInsightsText(displayedContent) }} />
                {/* Cursor effect for streaming */}
                {(isGeneratingInsights || displayedContent.length < insights.length) && (

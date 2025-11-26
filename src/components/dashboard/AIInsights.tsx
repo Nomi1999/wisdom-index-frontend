@@ -28,12 +28,28 @@ export const AIInsights: React.FC<AIInsightsProps> = ({
   // Local state for typewriter effect
   const [displayedContent, setDisplayedContent] = React.useState('');
   
+  // Ref for the content container to enable auto-scrolling
+  const contentRef = React.useRef<HTMLDivElement>(null);
+  
   // Reset displayed content when loading starts or overlay closes
   React.useEffect(() => {
     if (insightsLoading) {
       setDisplayedContent('');
     }
   }, [insightsLoading]);
+
+// Auto-scroll to bottom when content updates
+  React.useEffect(() => {
+    if (contentRef.current && displayedContent) {
+      // Use setTimeout to ensure the DOM has updated with new content
+      setTimeout(() => {
+        contentRef.current?.scrollTo({
+          top: contentRef.current.scrollHeight,
+          behavior: 'smooth'
+        });
+      }, 50);
+    }
+  }, [displayedContent]);
 
   // Typewriter effect logic
   React.useEffect(() => {
@@ -203,8 +219,8 @@ export const AIInsights: React.FC<AIInsightsProps> = ({
               </div>
             </div>
             
-            {/* Content */}
-            <div className="p-6 overflow-y-auto bg-white flex-1">
+{/* Content */}
+            <div ref={contentRef} className="p-6 overflow-y-auto bg-white flex-1">
               {insightsLoading && !displayedContent ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <div className="w-12 h-12 border-3 border-gray-300 border-t-blue-500 rounded-full animate-spin mb-4"></div>
