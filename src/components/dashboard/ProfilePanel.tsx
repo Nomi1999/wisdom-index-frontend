@@ -149,21 +149,34 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
   const renderProfileContent = () => {
     if (profileLoading) {
       return (
-        <div className="flex flex-col items-center justify-center p-12 text-gray-600">
-          <div className="w-10 h-10 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin mb-4" />
-          <p className="text-base font-medium">Loading profile information...</p>
+        <div className="flex flex-col items-center justify-center p-16 text-gray-600">
+          <div className="relative mb-6">
+            <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
+            <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-indigo-400 rounded-full animate-spin animation-delay-150"></div>
+          </div>
+          <p className="text-lg font-medium text-gray-700">Loading profile information...</p>
+          <p className="text-sm text-gray-500 mt-2">Please wait while we fetch your data</p>
         </div>
       );
     }
 
     if (profileError) {
       return (
-        <div className="text-center p-10">
-          <p className="text-red-600 font-medium mb-4">Unable to load profile information.</p>
+        <div className="text-center p-16">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <p className="text-red-700 font-semibold text-lg mb-2">Unable to load profile information</p>
+          <p className="text-gray-600 mb-6">There was an error fetching your profile data. Please try again.</p>
           <button
             onClick={onRetry}
-            className="bg-blue-900 text-white px-5 py-2 rounded-lg font-semibold hover:bg-blue-1100 transition-transform duration-150 hover:-translate-y-0.5"
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 hover:-translate-y-0.5 shadow-lg hover:shadow-xl inline-flex items-center gap-2"
           >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
             Retry
           </button>
         </div>
@@ -172,8 +185,14 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
 
     if (!profileData) {
       return (
-        <div className="text-center p-10 text-gray-600">
-          <p>No profile details are available yet. Try refreshing the data.</p>
+        <div className="text-center p-16 text-gray-600">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+            </svg>
+          </div>
+          <p className="text-gray-700 font-medium text-lg mb-2">No profile data available</p>
+          <p className="text-gray-500">No profile details are available yet. Try refreshing the data.</p>
         </div>
       );
     }
@@ -184,18 +203,18 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
       <div className="flex flex-col gap-8">
         {/* Save/Cancel buttons in edit mode */}
         {isEditing && (
-          <div className="flex justify-end gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="flex justify-end gap-3 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 shadow-sm">
             <button
               onClick={handleCancel}
               disabled={saveLoading}
-              className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
               disabled={saveLoading}
-              className="px-4 py-2 text-white bg-blue-900 rounded-lg font-medium hover:bg-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-6 py-2.5 text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-md hover:shadow-lg"
             >
               {saveLoading && (
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -207,13 +226,27 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
 
         {/* Error message */}
         {saveError && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700 font-medium">{saveError}</p>
+          <div className="p-4 bg-red-50 border border-red-200 rounded-lg shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg className="w-3 h-3 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+              <p className="text-red-700 font-medium">{saveError}</p>
+            </div>
           </div>
         )}
 
         <section className="flex flex-col gap-6">
-          <h2 className="text-lg font-semibold text-gray-700 m-0">Personal Information</h2>
+          <div className="flex items-center gap-3 pb-2 border-b border-gray-200">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-sm">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+            <h2 className="text-lg font-bold text-gray-900 m-0">Personal Information</h2>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {isEditing ? (
               <>
@@ -268,7 +301,14 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
         <Divider />
 
         <section className="flex flex-col gap-6">
-          <h2 className="text-lg font-semibold text-gray-700 m-0">Contact Information</h2>
+          <div className="flex items-center gap-3 pb-2 border-b border-gray-200">
+            <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center shadow-sm">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h2 className="text-lg font-bold text-gray-900 m-0">Contact Information</h2>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {isEditing ? (
               <>
@@ -324,8 +364,8 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
                 <DetailBlock label="Cell Phone" value={currentData.cell_phone || 'Not available'} />
                 <DetailBlock label="Home Phone" value={currentData.home_phone || 'Not available'} />
                 <DetailBlock label="Business Phone" value={currentData.business_phone || 'Not available'} />
-                <div className="flex flex-col md:col-span-2">
-                  <p className="text-sm text-gray-500 mb-1">Address</p>
+                <div className="flex flex-col md:col-span-2 p-4 bg-gray-50 rounded-lg border border-gray-100 hover:bg-gray-100 transition-colors duration-200">
+                  <p className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">Address</p>
                   <p className="text-base font-medium text-gray-900">
                     {[
                       currentData.address1,
@@ -345,7 +385,14 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
         <Divider />
 
         <section className="flex flex-col gap-6">
-          <h2 className="text-lg font-semibold text-gray-700 m-0">Spouse Information</h2>
+          <div className="flex items-center gap-3 pb-2 border-b border-gray-200">
+            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shadow-sm">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </div>
+            <h2 className="text-lg font-bold text-gray-900 m-0">Spouse Information</h2>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {isEditing ? (
               <>
@@ -398,7 +445,14 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
         <Divider />
 
         <section className="flex flex-col gap-6">
-          <h2 className="text-lg font-semibold text-gray-700 m-0">Employment Information</h2>
+          <div className="flex items-center gap-3 pb-2 border-b border-gray-200">
+            <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center shadow-sm">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h2 className="text-lg font-bold text-gray-900 m-0">Employment Information</h2>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {isEditing ? (
               <>
@@ -439,26 +493,39 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
 
   return (
     <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-8 border-b border-gray-100 bg-gradient-to-r from-white to-blue-50">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Profile Information</h1>
-          <p className="text-gray-500 text-sm">
-            {isEditing ? 'Edit your personal information below.' : 'Review the personal information on file.'}
-          </p>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-8 border-b border-gray-100 bg-gradient-to-r from-white via-blue-50/30 to-indigo-50/50">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Profile Information</h1>
+            <p className="text-gray-600 text-sm mt-0.5">
+              {isEditing ? 'Edit your personal information below.' : 'Review the personal information on file.'}
+            </p>
+          </div>
         </div>
         <div className="flex gap-3">
           {!isEditing && (
             <>
               <button
                 onClick={handleEditClick}
-                className="self-start sm:self-auto bg-blue-900 text-white font-semibold px-5 py-2 rounded-xl hover:bg-blue-1100 transition-all duration-150 hover:-translate-y-0.5 shadow-sm"
+                className="self-start sm:self-auto bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold px-6 py-2.5 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 hover:-translate-y-0.5 shadow-lg hover:shadow-xl flex items-center gap-2"
               >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
                 Edit Profile
               </button>
               <button
                 onClick={onRetry}
-                className="self-start sm:self-auto bg-gray-100 text-gray-700 font-semibold px-5 py-2 rounded-xl hover:bg-gray-200 transition-all duration-150 hover:-translate-y-0.5 shadow-sm"
+                className="self-start sm:self-auto bg-gray-100 text-gray-700 font-semibold px-6 py-2.5 rounded-xl hover:bg-gray-200 transition-all duration-200 hover:-translate-y-0.5 shadow-md hover:shadow-lg flex items-center gap-2"
               >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
                 Refresh Data
               </button>
             </>
@@ -471,8 +538,8 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
 };
 
 const DetailBlock = ({ label, value }: { label: string; value: string }) => (
-  <div className="flex flex-col">
-    <p className="text-sm text-gray-500 mb-1">{label}</p>
+  <div className="flex flex-col p-4 bg-gray-50 rounded-lg border border-gray-100 hover:bg-gray-100 transition-colors duration-200">
+    <p className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">{label}</p>
     <p className="text-base font-medium text-gray-900">{value}</p>
   </div>
 );
@@ -493,12 +560,12 @@ const EditableField = ({
   className?: string;
 }) => (
   <div className={`flex flex-col ${className}`}>
-    <label className="text-sm text-gray-500 mb-1">{label}</label>
+    <label className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">{label}</label>
     {type === 'select' ? (
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm hover:border-gray-400 transition-colors duration-200"
       >
         <option value="">Select...</option>
         {options.map(option => (
@@ -510,10 +577,10 @@ const EditableField = ({
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm hover:border-gray-400 transition-colors duration-200"
       />
     )}
   </div>
 );
 
-const Divider = () => <div className="h-px bg-gray-200" />;
+const Divider = () => <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent my-2" />;
