@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -161,7 +162,8 @@ export function TargetManagement({ clientId }: TargetManagementProps) {
         status: 'above',
         displayText: `↑ ${Math.abs(percentage).toFixed(1)}%`,
         variant: 'outline' as const,
-        customClass: 'bg-green-50 text-green-700 border-green-200'
+        customClass: 'bg-green-50 text-green-700 border-green-200',
+        progressPercentage: Math.min((currentValue / targetValue) * 100, 100)
       };
     }
     if (currentValue < targetValue) {
@@ -170,14 +172,16 @@ export function TargetManagement({ clientId }: TargetManagementProps) {
         status: 'below',
         displayText: `↓ ${Math.abs(percentage).toFixed(1)}%`,
         variant: 'outline' as const,
-        customClass: 'bg-red-50 text-red-700 border-red-200'
+        customClass: 'bg-red-50 text-red-700 border-red-200',
+        progressPercentage: Math.min((currentValue / targetValue) * 100, 100)
       };
     }
     return {
       status: 'equal',
       displayText: '✓ On Target',
       variant: 'outline' as const,
-      customClass: 'bg-blue-50 text-blue-700 border-blue-200'
+      customClass: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+      progressPercentage: 100
     };
   };
 
@@ -374,76 +378,80 @@ export function TargetManagement({ clientId }: TargetManagementProps) {
 
   if (isLoading) {
     return (
-      <div className="text-center py-4">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-        <p className="text-sm">Loading...</p>
+      <div className="text-center py-8">
+        <div className="relative inline-block">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="absolute inset-0 rounded-full border-2 border-transparent border-r-blue-400 animate-spin opacity-30"></div>
+        </div>
+        <p className="text-gray-600 font-medium">Loading client targets...</p>
+        <p className="text-gray-400 text-sm mt-1">Preparing target management interface</p>
       </div>
     );
   }
 
-  // Get category-specific icons and colors
+  // Get category-specific icons and colors - matching client side blue theme
   const getCategoryStyle = (categoryTitle: string) => {
     switch (categoryTitle) {
       case 'Assets & Liabilities':
         return {
           icon: <DollarSign className="w-4 h-4" />,
-          bgGradient: 'from-emerald-50 to-teal-50',
-          borderColor: 'border-emerald-200',
-          headerBg: 'bg-gradient-to-r from-emerald-500 to-teal-600',
-          titleColor: 'text-emerald-700',
+          bgGradient: 'from-blue-50/80 to-blue-100/40',
+          borderColor: 'border-blue-950',
+          headerBg: 'bg-gradient-to-r from-blue-950 to-blue-900',
+          titleColor: 'text-blue-950',
           cardBg: 'bg-white/80 backdrop-blur-sm'
         };
       case 'Income Analysis':
         return {
           icon: <TrendingUp className="w-4 h-4" />,
-          bgGradient: 'from-blue-50 to-indigo-50',
-          borderColor: 'border-blue-200',
-          headerBg: 'bg-gradient-to-r from-blue-500 to-indigo-600',
-          titleColor: 'text-blue-700',
+          bgGradient: 'from-blue-50/70 to-blue-100/30',
+          borderColor: 'border-blue-900',
+          headerBg: 'bg-gradient-to-r from-blue-900 to-blue-800',
+          titleColor: 'text-blue-900',
           cardBg: 'bg-white/80 backdrop-blur-sm'
         };
       case 'Expense Tracking':
         return {
           icon: <PiggyBank className="w-4 h-4" />,
-          bgGradient: 'from-orange-50 to-amber-50',
-          borderColor: 'border-orange-200',
-          headerBg: 'bg-gradient-to-r from-orange-500 to-amber-600',
-          titleColor: 'text-orange-700',
+          bgGradient: 'from-blue-50/60 to-blue-100/20',
+          borderColor: 'border-blue-800',
+          headerBg: 'bg-gradient-to-r from-blue-800 to-blue-700',
+          titleColor: 'text-blue-800',
           cardBg: 'bg-white/80 backdrop-blur-sm'
         };
       case 'Insurance Coverage':
         return {
           icon: <Shield className="w-4 h-4" />,
-          bgGradient: 'from-purple-50 to-pink-50',
-          borderColor: 'border-purple-200',
-          headerBg: 'bg-gradient-to-r from-purple-500 to-pink-600',
-          titleColor: 'text-purple-700',
+          bgGradient: 'from-blue-50/50 to-blue-100/10',
+          borderColor: 'border-blue-700',
+          headerBg: 'bg-gradient-to-r from-blue-700 to-blue-600',
+          titleColor: 'text-blue-700',
           cardBg: 'bg-white/80 backdrop-blur-sm'
         };
       case 'Future Planning Ratios':
         return {
           icon: <Target className="w-4 h-4" />,
-          bgGradient: 'from-cyan-50 to-sky-50',
-          borderColor: 'border-cyan-200',
-          headerBg: 'bg-gradient-to-r from-cyan-500 to-sky-600',
-          titleColor: 'text-cyan-700',
+          bgGradient: 'from-blue-50/40 to-slate-50/20',
+          borderColor: 'border-blue-600',
+          headerBg: 'bg-gradient-to-r from-blue-600 to-blue-500',
+          titleColor: 'text-blue-600',
           cardBg: 'bg-white/80 backdrop-blur-sm'
         };
       case 'Wisdom Index Ratios':
         return {
           icon: <PieChart className="w-4 h-4" />,
-          bgGradient: 'from-fuchsia-50 to-indigo-50',
-          borderColor: 'border-fuchsia-200',
-          headerBg: 'bg-gradient-to-r from-fuchsia-500 to-indigo-600',
-          titleColor: 'text-fuchsia-700',
+          bgGradient: 'from-blue-50/30 to-slate-50/10',
+          borderColor: 'border-blue-500',
+          headerBg: 'bg-gradient-to-r from-blue-500 to-blue-400',
+          titleColor: 'text-blue-500',
           cardBg: 'bg-white/80 backdrop-blur-sm'
         };
       default:
         return {
           icon: <Target className="w-4 h-4" />,
-          bgGradient: 'from-gray-50 to-slate-50',
-          borderColor: 'border-gray-200',
-          headerBg: 'bg-gradient-to-r from-gray-500 to-slate-600',
+          bgGradient: 'from-gray-50/60 to-gray-100/20',
+          borderColor: 'border-gray-500',
+          headerBg: 'bg-gradient-to-r from-gray-500 to-gray-400',
           titleColor: 'text-gray-700',
           cardBg: 'bg-white/80 backdrop-blur-sm'
         };
@@ -497,197 +505,261 @@ export function TargetManagement({ clientId }: TargetManagementProps) {
   };
 
   return (
-    <div className="space-y-4 p-3">
-      {/* Enhanced Header Section */}
-      <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 shadow-lg border border-blue-100">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-indigo-500/10"></div>
-        <div className="relative p-3">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow">
-                <Target className="w-5 h-5" />
+    <div className="space-y-6 p-4">
+      {/* Enhanced Header Section - Matching Client Side Style */}
+      <motion.div 
+        className="relative overflow-hidden rounded-2xl bg-white shadow-xl border border-blue-100/50 backdrop-blur-sm"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-100/40 to-blue-200/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 opacity-70 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-blue-50/30 to-transparent rounded-full blur-2xl translate-y-1/2 -translate-x-1/4 opacity-60 pointer-events-none"></div>
+        <div className="relative p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-blue-900 to-blue-800 text-white shadow-lg">
+                <Target className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-800">Target Management</h3>
-                <p className="text-gray-600 text-xs">Client {clientId}</p>
+                <h3 className="text-xl font-bold text-gray-800">Target Management</h3>
+                <p className="text-gray-600 text-sm">Client ID: {clientId}</p>
               </div>
             </div>
-            <div className="flex flex-wrap gap-2 items-center">
+            <div className="flex flex-wrap gap-3 items-center">
               {saveMessage && (
-                <Badge
-                  variant={saveMessage.includes('success') ? 'default' : 'destructive'}
-                  className={`px-2 py-1 text-xs font-medium shadow-sm ${
-                    saveMessage.includes('success')
-                      ? 'bg-green-100 text-green-800 border-green-200'
-                      : 'bg-red-100 text-red-800 border-red-200'
-                  }`}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.2 }}
                 >
-                  {saveMessage}
-                </Badge>
+                  <Badge
+                    variant={saveMessage.includes('success') ? 'default' : 'destructive'}
+                    className={`px-3 py-2 text-sm font-medium shadow-md ${
+                      saveMessage.includes('success')
+                        ? 'bg-green-100 text-green-800 border-green-200'
+                        : 'bg-red-100 text-red-800 border-red-200'
+                    }`}
+                  >
+                    {saveMessage}
+                  </Badge>
+                </motion.div>
               )}
               <Button
                 onClick={resetAllTargets}
                 variant="outline"
                 size="sm"
-                className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-all duration-200 shadow-sm"
+                className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-all duration-200 shadow-sm hover:shadow-md hover:-translate-y-0.5"
               >
-                <Trash2 className="w-3 h-3 mr-1" />
-                Reset
+                <Trash2 className="w-4 h-4 mr-2" />
+                Reset All
               </Button>
               <Button
                 onClick={saveTargets}
                 disabled={isSaving}
                 size="sm"
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white transition-all duration-200 shadow"
+                className="bg-gradient-to-r from-blue-900 to-blue-800 hover:from-blue-800 hover:to-blue-700 text-white transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center gap-2"
               >
-                <Save className="w-3 h-3 mr-1" />
-                {isSaving ? 'Saving...' : 'Save'}
+                <Save className="w-4 h-4" />
+                {isSaving ? (
+                  <span className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Saving...
+                  </span>
+                ) : 'Save Changes'}
               </Button>
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="space-y-4">
+      <motion.div 
+        className="space-y-6"
+        initial="hidden"
+        animate="visible"
+        variants={{
+          hidden: { opacity: 0 },
+          visible: {
+            opacity: 1,
+            transition: {
+              staggerChildren: 0.1
+            }
+          }
+        }}
+      >
         {metricCategories.map((category) => {
           const categoryStyle = getCategoryStyle(category.title);
-          
+           
           return (
-            <Card
+            <motion.div
               key={category.title}
-              className={`overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5`}
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0 }
+              }}
+              whileHover={{ y: -2 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
-              {/* Enhanced Category Header */}
-              <div className={`${categoryStyle.headerBg} p-3 relative overflow-hidden`}>
-                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
-                <div className="relative flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-white/20 backdrop-blur-sm text-white">
-                    {categoryStyle.icon}
-                  </div>
-                  <h4 className="text-base font-bold text-white">{category.title}</h4>
-                  <div className="ml-auto">
-                    <div className="bg-white/20 backdrop-blur-sm rounded-full px-2 py-0.5 text-white text-xs font-medium">
-                      {category.metrics.length}
+              <Card
+                className={`overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1`}
+              >
+                {/* Enhanced Category Header */}
+                <div className={`${categoryStyle.headerBg} p-4 relative overflow-hidden`}>
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+                  <div className="relative flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-white/20 backdrop-blur-sm text-white">
+                      {categoryStyle.icon}
+                    </div>
+                    <h4 className="text-lg font-bold text-white">{category.title}</h4>
+                    <div className="ml-auto">
+                      <div className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 text-white text-sm font-medium">
+                        {category.metrics.length} metrics
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              
-              {/* Enhanced Category Content */}
-              <div className={`p-3 ${categoryStyle.bgGradient}`}>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {category.metrics.map((metric) => {
-                    const currentValue = getCurrentValue(metric.name);
-                    const targetValue = targets[metric.name];
-                    const targetStatus = getTargetStatus(metric.name);
-                    
-                    return (
-                      <div
-                        key={metric.name}
-                        className={`group relative p-3 rounded-lg border ${categoryStyle.borderColor} ${categoryStyle.cardBg} shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5`}
-                      >
-                        {/* Metric Header with Icon */}
-                        <div className="flex items-center gap-1.5 mb-2">
-                          <div className={`p-1 rounded-lg ${categoryStyle.titleColor} bg-opacity-10 ${categoryStyle.titleColor.replace('text', 'bg')}`}>
-                            {getMetricIcon(metric.name)}
-                          </div>
-                          <Label
-                            htmlFor={`target-${metric.name}`}
-                            className={`text-xs font-semibold ${categoryStyle.titleColor}`}
-                          >
-                            {metric.title}
-                          </Label>
-                        </div>
-                         
-                        {/* Enhanced Input and Status */}
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-1.5">
-                            <div className="relative flex-1">
-                              <Input
-                                id={`target-${metric.name}`}
-                                type="number"
-                                value={targetValue || ''}
-                                onChange={(e) => handleTargetChange(metric.name, e.target.value)}
-                                placeholder="Target"
-                                step="0.01"
-                                min="0"
-                                className={`border-gray-200 focus:border-blue-400 focus:ring-blue-100 pr-8 transition-all duration-200 text-xs h-8 ${
-                                  targetValue ? 'bg-white' : 'bg-gray-50'
-                                }`}
-                              />
-                              {targetValue && (
-                                <button
-                                  onClick={() => deleteTarget(metric.name)}
-                                  className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded-md text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all duration-200"
-                                  title="Delete target"
-                                  type="button"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </button>
+                
+                {/* Enhanced Category Content */}
+                <div className={`p-6 ${categoryStyle.bgGradient}`}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {category.metrics.map((metric) => {
+                      const currentValue = getCurrentValue(metric.name);
+                      const targetValue = targets[metric.name];
+                      const targetStatus = getTargetStatus(metric.name);
+                      
+                      return (
+                        <motion.div
+                          key={metric.name}
+                          className={`group relative p-5 rounded-xl border ${categoryStyle.borderColor} ${categoryStyle.cardBg} shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1`}
+                          whileHover={{ scale: 1.02 }}
+                          transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                        >
+                           {/* Metric Header with Icon - Clean design without border */}
+                           <div className="flex items-center gap-2 mb-4">
+                             <div className={`p-1.5 rounded-lg bg-gray-50 ${categoryStyle.titleColor}`}>
+                               {getMetricIcon(metric.name)}
+                             </div>
+                             <Label
+                               htmlFor={`target-${metric.name}`}
+                               className={`text-sm font-bold ${categoryStyle.titleColor}`}
+                             >
+                               {metric.title}
+                             </Label>
+                           </div>
+                           
+                          {/* Enhanced Input and Status */}
+                          <div className="space-y-4">
+                            <div className="flex items-center gap-2">
+                              <div className="relative flex-1">
+                                <Input
+                                  id={`target-${metric.name}`}
+                                  type="number"
+                                  value={targetValue || ''}
+                                  onChange={(e) => handleTargetChange(metric.name, e.target.value)}
+                                  placeholder="Set target"
+                                  step="0.01"
+                                  min="0"
+                                  className={`border-gray-200 focus:border-blue-400 focus:ring-blue-100 pr-10 transition-all duration-200 text-sm h-10 ${
+                                    targetValue ? 'bg-white' : 'bg-gray-50'
+                                  }`}
+                                />
+                                {targetValue && (
+                                  <button
+                                    onClick={() => deleteTarget(metric.name)}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all duration-200"
+                                    title="Delete target"
+                                    type="button"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                )}
+                              </div>
+                              {metric.isRatio ? (
+                                <Percent className="w-5 h-5 text-gray-400" />
+                              ) : (
+                                <DollarSign className="w-5 h-5 text-gray-400" />
                               )}
+                            </div>
+                             
+                            {/* Enhanced Progress Bar */}
+                            {targetValue && currentValue && (
+                              <div className="space-y-2">
+                                <div className="flex justify-between text-xs text-gray-600">
+                                  <span>Progress</span>
+                                  <span>{targetStatus.progressPercentage?.toFixed(0) || 0}%</span>
+                                </div>
+                                <div className="w-full bg-gray-200/50 rounded-full h-2.5 overflow-hidden">
+                                  <motion.div 
+                                    className={`h-2.5 rounded-full transition-all duration-500 ${
+                                      targetStatus.status === 'above' ? 'bg-green-500' :
+                                      targetStatus.status === 'below' ? 'bg-red-500' :
+                                      'bg-yellow-500'
+                                    }`}
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${targetStatus.progressPercentage || 0}%` }}
+                                    transition={{ duration: 0.8, ease: "easeOut" }}
+                                  />
+                                </div>
+                              </div>
+                            )}
+                             
+                            {/* Enhanced Status Badge */}
+                            <div className="flex items-center justify-between">
+                              <Badge
+                                variant={targetStatus.variant}
+                                className={`min-w-[90px] justify-center font-semibold text-sm shadow-md transition-all duration-200 ${
+                                  targetStatus.customClass || 'bg-gray-50 text-gray-700 border-gray-200'
+                                }`}
+                              >
+                                {targetStatus.status === 'above' && <TrendingUp className="w-3 h-3 mr-1.5" />}
+                                {targetStatus.status === 'below' && <TrendingDown className="w-3 h-3 mr-1.5" />}
+                                {targetStatus.status === 'equal' && <Target className="w-3 h-3 mr-1.5" />}
+                                {targetStatus.displayText}
+                              </Badge>
+                            </div>
+                             
+                            {/* Enhanced Current Value Display */}
+                            <div className={`text-sm p-3 rounded-lg bg-gray-50 ${categoryStyle.titleColor} font-semibold border border-gray-100`}>
+                              <span className="text-gray-500">Current Value: </span>
+                              {metric.isRatio ? currentValue?.toFixed(2) : formatCurrency(currentValue || 0)}
                             </div>
                           </div>
                            
-                          {/* Enhanced Status Badge */}
-                          <div className="flex items-center justify-between">
-                            <Badge
-                              variant={targetStatus.variant}
-                              className={`min-w-[80px] justify-center font-medium text-xs shadow-sm transition-all duration-200 ${
-                                targetStatus.customClass || 'bg-gray-50 text-gray-700 border-gray-200'
-                              }`}
-                            >
-                              {targetStatus.status === 'above' && <TrendingUp className="w-2.5 h-2.5 mr-1" />}
-                              {targetStatus.status === 'below' && <TrendingDown className="w-2.5 h-2.5 mr-1" />}
-                              {targetStatus.status === 'equal' && <Target className="w-2.5 h-2.5 mr-1" />}
-                              {targetStatus.displayText}
-                            </Badge>
-                            
-                            {metric.isRatio ? (
-                              <Percent className="w-3 h-3 text-gray-400" />
-                            ) : (
-                              <DollarSign className="w-3 h-3 text-gray-400" />
-                            )}
-                          </div>
-                           
-                          {/* Enhanced Current Value Display */}
-                          <div className={`text-xs p-1.5 rounded bg-gray-50 ${categoryStyle.titleColor} font-medium`}>
-                            <span className="text-gray-500">Current: </span>
-                            {metric.isRatio ? currentValue?.toFixed(2) : formatCurrency(currentValue || 0)}
-                          </div>
-                        </div>
-                         
-                        {/* Subtle decorative element */}
-                        <div className="absolute -bottom-0.5 -right-0.5 w-8 h-8 bg-gradient-to-br from-gray-100 to-transparent rounded-full opacity-30"></div>
-                      </div>
-                    );
-                  })}
+                          {/* Subtle decorative element */}
+                          <div className="absolute -bottom-1 -right-1 w-12 h-12 bg-gradient-to-br from-gray-100 to-transparent rounded-full opacity-20"></div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            </Card>
+              </Card>
+            </motion.div>
           );
         })}
-      </div>
+      </motion.div>
       
-      {/* Delete Target Confirmation Dialog */}
+      {/* Enhanced Delete Target Confirmation Dialog */}
       <ConfirmDialog
         isOpen={deleteConfirmDialog.isOpen}
         onClose={() => setDeleteConfirmDialog({ isOpen: false })}
         onConfirm={deleteConfirmDialog.onConfirm || (() => {})}
         title="Delete Target"
-        description={`Are you sure you want to delete the target for ${deleteConfirmDialog.metricName}?`}
-        confirmText="Delete"
+        description={`Are you sure you want to delete the target for ${deleteConfirmDialog.metricName}? This action cannot be undone.`}
+        confirmText="Delete Target"
         cancelText="Cancel"
+        confirmButtonClass="bg-red-600 hover:bg-red-700 text-white"
       />
       
-      {/* Reset All Targets Confirmation Dialog */}
+      {/* Enhanced Reset All Targets Confirmation Dialog */}
       <ConfirmDialog
         isOpen={resetConfirmDialog.isOpen}
         onClose={() => setResetConfirmDialog({ isOpen: false })}
         onConfirm={resetConfirmDialog.onConfirm || (() => {})}
         title="Reset All Targets"
-        description="Are you sure you want to reset ALL targets for this client? This action cannot be undone."
-        confirmText="Reset All"
+        description="Are you sure you want to reset ALL targets for this client? This will permanently remove all custom targets and cannot be undone."
+        confirmText="Reset All Targets"
         cancelText="Cancel"
+        confirmButtonClass="bg-red-600 hover:bg-red-700 text-white"
       />
     </div>
   );
