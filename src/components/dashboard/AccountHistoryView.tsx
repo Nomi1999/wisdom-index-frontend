@@ -166,29 +166,34 @@ export const AccountHistoryView: React.FC<AccountHistoryViewProps> = ({ authToke
 
 return (
     <div className="flex flex-col gap-6 pb-8">
-      {/* Header Section */}
-      <section className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl shadow-lg border border-blue-100 p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-              Account History
-            </h2>
-            <p className="text-sm text-gray-600 mt-2">
-              {getSelectedAccountName()
-                ? `Viewing: ${getSelectedAccountName()}`
-                : 'Select an account to explore its history.'}
-            </p>
-          </div>
-          {selectedAccountDetails && (
-            <div className="text-right">
-              <p className="text-xs text-gray-500 uppercase tracking-wide">Current Value</p>
-              <p className="text-xl font-bold text-blue-600">
-                ${selectedAccountDetails.current_value?.toLocaleString() || '0'}
-              </p>
+{/* Header Section */}
+      <section className="rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+        <header className="p-6 border-b border-gray-100 bg-gradient-to-r from-blue-900 to-blue-800 text-white relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-800/20 to-indigo-900/20"></div>
+          <div className="relative z-10">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                  <div className="w-2 h-2 bg-white rounded-full"></div>
+                  Account History
+                </h2>
+                <p className="text-sm text-blue-100 mt-2">
+                  {getSelectedAccountName()
+                    ? `Viewing: ${getSelectedAccountName()}`
+                    : 'Select an account to explore its history.'}
+                </p>
+              </div>
+              {selectedAccountDetails && (
+                <div className="text-right">
+                  <p className="text-xs text-blue-200 uppercase tracking-wide">Current Value</p>
+                  <p className="text-xl font-bold text-white">
+                    ${selectedAccountDetails.current_value?.toLocaleString() || '0'}
+                  </p>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </div>
+        </header>
       </section>
 
       {/* Controls Section */}
@@ -309,23 +314,32 @@ return (
                 showEmptyState={false}
               />
               
-              {/* Summary Statistics */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-6 border-t border-gray-100">
-                <div className="bg-blue-50 rounded-lg p-4">
-                  <p className="text-xs text-blue-600 font-medium uppercase tracking-wide">Starting Value</p>
-                  <p className="text-lg font-bold text-blue-900 mt-1">
+{/* Summary Statistics */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-gray-100">
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 hover:border-blue-200 transition-colors">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <p className="text-xs text-gray-600 font-medium">Starting Value</p>
+                  </div>
+                  <p className="text-lg font-bold text-gray-900">
                     ${historyData[historyData.length - 1]?.value?.toLocaleString() || '0'}
                   </p>
                 </div>
-                <div className="bg-green-50 rounded-lg p-4">
-                  <p className="text-xs text-green-600 font-medium uppercase tracking-wide">Ending Value</p>
-                  <p className="text-lg font-bold text-green-900 mt-1">
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 hover:border-green-200 transition-colors">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <p className="text-xs text-gray-600 font-medium">Ending Value</p>
+                  </div>
+                  <p className="text-lg font-bold text-gray-900">
                     ${historyData[0]?.value?.toLocaleString() || '0'}
                   </p>
                 </div>
-                <div className="bg-orange-50 rounded-lg p-4">
-                  <p className="text-xs text-orange-600 font-medium uppercase tracking-wide">Change</p>
-                  <p className={`text-lg font-bold mt-1 ${
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 hover:border-orange-200 transition-colors">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                    <p className="text-xs text-gray-600 font-medium">Change</p>
+                  </div>
+                  <p className={`text-lg font-bold ${
                     ((historyData[0]?.value || 0) - (historyData[historyData.length - 1]?.value || 0)) >= 0 
                       ? 'text-green-600' 
                       : 'text-red-600'
@@ -339,9 +353,12 @@ return (
                     })()}
                   </p>
                 </div>
-                <div className="bg-purple-50 rounded-lg p-4">
-                  <p className="text-xs text-purple-600 font-medium uppercase tracking-wide">Data Points</p>
-                  <p className="text-lg font-bold text-purple-900 mt-1">
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 hover:border-purple-200 transition-colors">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                    <p className="text-xs text-gray-600 font-medium">Data Points</p>
+                  </div>
+                  <p className="text-lg font-bold text-gray-900">
                     {historyData.length}
                   </p>
                 </div>
