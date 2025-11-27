@@ -315,7 +315,7 @@ return (
               />
               
 {/* Summary Statistics */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-gray-100">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 pt-6 border-t border-gray-100">
                 <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 hover:border-blue-200 transition-colors">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
@@ -356,6 +356,25 @@ return (
                 <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 hover:border-purple-200 transition-colors">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                    <p className="text-xs text-gray-600 font-medium">Date Range</p>
+                  </div>
+                  <p className="text-sm font-bold text-gray-900">
+                    {(() => {
+                      if (historyData.length === 0) return 'No data';
+                      const firstDate = new Date(historyData[0].as_of_date);
+                      const lastDate = new Date(historyData[historyData.length - 1].as_of_date);
+                      const formatDate = (date: Date) => date.toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                      });
+                      return `${formatDate(lastDate)} - ${formatDate(firstDate)}`;
+                    })()}
+                  </p>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 hover:border-indigo-200 transition-colors">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
                     <p className="text-xs text-gray-600 font-medium">Data Points</p>
                   </div>
                   <p className="text-lg font-bold text-gray-900">

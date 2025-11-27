@@ -316,7 +316,7 @@ return (
               />
               
 {/* Summary Statistics */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-gray-100">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 pt-6 border-t border-gray-100">
                 <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 hover:border-purple-200 transition-colors">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
@@ -351,6 +351,25 @@ return (
                       if (start === 0) return '0.00%';
                       const change = ((end - start) / start) * 100;
                       return `${change > 0 ? '+' : ''}${change.toFixed(2)}%`;
+                    })()}
+                  </p>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 hover:border-orange-200 transition-colors">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                    <p className="text-xs text-gray-600 font-medium">Date Range</p>
+                  </div>
+                  <p className="text-sm font-bold text-gray-900">
+                    {(() => {
+                      if (historyData.length === 0) return 'No data';
+                      const firstDate = new Date(historyData[0].as_of_date);
+                      const lastDate = new Date(historyData[historyData.length - 1].as_of_date);
+                      const formatDate = (date: Date) => date.toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                      });
+                      return `${formatDate(lastDate)} - ${formatDate(firstDate)}`;
                     })()}
                   </p>
                 </div>

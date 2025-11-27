@@ -40,11 +40,12 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
     }));
 
   // Custom tooltip component
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
+      const data = payload[0].payload;
       return (
         <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-          <p className="text-sm font-medium text-gray-900">{label}</p>
+          <p className="text-sm font-medium text-gray-900">{data.displayDate}</p>
           <p className="text-sm text-blue-600 font-semibold">
             Value: ${payload[0].value.toLocaleString()}
           </p>
