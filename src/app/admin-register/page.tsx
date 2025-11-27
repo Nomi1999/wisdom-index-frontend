@@ -199,7 +199,7 @@ export default function AdminRegisterPage() {
                   loading="lazy"
                 />
               </div>
-              <div className={styles.brandCopy}>
+<div className={styles.brandCopy}>
                 <p className={styles.brandTitle}>Wisdom Index Admin</p>
                 <p className={styles.brandTagline}>Secure Control Console</p>
               </div>
@@ -207,12 +207,30 @@ export default function AdminRegisterPage() {
                 Create an administrator profile to manage client analytics, advisory workflows,
                 and compliance responses from a single dashboard.
               </p>
-              <div className={styles.brandInfoCard}>
-                <p className={styles.brandInfoTitle}>Admin Registration</p>
-                <p>
-                  This registration is for Wisdom Index administrators only. You must have the
-                  correct security code to create an admin account.
-                </p>
+              <div className={styles.securityBadge}>
+                <div className={styles.securityIcon}>🔒</div>
+                <div className={styles.securityText}>
+                  <strong>Authorized Access Only</strong>
+                  <span>Requires valid security code</span>
+                </div>
+              </div>
+              <div className={styles.adminFeatures}>
+                <div className={styles.adminFeatureItem}>
+                  <div className={styles.adminFeatureIcon}>⚙️</div>
+                  <span>System Administration</span>
+                </div>
+                <div className={styles.adminFeatureItem}>
+                  <div className={styles.adminFeatureIcon}>👥</div>
+                  <span>Client Management</span>
+                </div>
+                <div className={styles.adminFeatureItem}>
+                  <div className={styles.adminFeatureIcon}>📈</div>
+                  <span>Analytics Control</span>
+                </div>
+                <div className={styles.adminFeatureItem}>
+                  <div className={styles.adminFeatureIcon}>🛡️</div>
+                  <span>Security Oversight</span>
+                </div>
               </div>
             </div>
           </div>
@@ -318,8 +336,7 @@ export default function AdminRegisterPage() {
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
-                {fieldErrors.password && <small>{fieldErrors.password}</small>}
-                <small className={styles.fieldHint}>Must be at least 8 characters long.</small>
+{fieldErrors.password && <small>{fieldErrors.password}</small>}
               </label>
 
               <label
@@ -351,10 +368,14 @@ export default function AdminRegisterPage() {
                   {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
                 {fieldErrors.confirmPassword && <small>{fieldErrors.confirmPassword}</small>}
-              </label>
+</label>
+
+              <div className={styles.passwordHint}>
+                <span>💡 Password must be at least 8 characters long</span>
+              </div>
 
               <label
-                className={`${styles.inputField} ${styles.passwordField} ${
+                className={`${styles.inputField} ${styles.passwordField} ${styles.securityCodeField} ${
                   fieldErrors.securityCode ? styles.hasError : ''
                 }`}
               >

@@ -170,7 +170,7 @@ export default function RegisterPage() {
                   loading="lazy"
                 />
               </div>
-              <div className={styles.brandCopy}>
+<div className={styles.brandCopy}>
                 <p className={styles.brandTitle}>Wisdom Index</p>
                 <p className={styles.brandTagline}>Financial Advisory Platform</p>
               </div>
@@ -178,6 +178,20 @@ export default function RegisterPage() {
                 Register as a client to unlock personalized analytics, advisory insights, and
                 proactive goal tracking.
               </p>
+              <div className={styles.brandFeatures}>
+                <div className={styles.featureItem}>
+                  <div className={styles.featureIcon}>📊</div>
+                  <span>Advanced Analytics</span>
+                </div>
+                <div className={styles.featureItem}>
+                  <div className={styles.featureIcon}>🎯</div>
+                  <span>Goal Tracking</span>
+                </div>
+                <div className={styles.featureItem}>
+                  <div className={styles.featureIcon}>🤝</div>
+                  <span>Expert Advisory</span>
+                </div>
+              </div>
               <div className={styles.brandChart} aria-hidden="true">
                 <svg viewBox="0 0 320 150" role="img" aria-label="Portfolio growth line chart">
                   <defs>

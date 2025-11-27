@@ -361,10 +361,10 @@ export const login = async (username: string, password: string): Promise<boolean
       // Redirect based on user role
       if (data.user.isAdmin) {
         console.log('[SessionAuth] Admin user detected, redirecting to /admin');
-        window.location.href = '/admin';
+        window.location.replace('/admin');
       } else {
         console.log('[SessionAuth] Regular user detected, redirecting to /dashboard');
-        window.location.href = '/dashboard';
+        window.location.replace('/dashboard');
       }
       
       return true;
@@ -383,7 +383,7 @@ export const login = async (username: string, password: string): Promise<boolean
 export const logout = (): void => {
   console.log('[SessionAuth] Logout initiated, clearing session');
   removeToken();
-  window.location.href = '/login';
+  window.location.replace('/login');
 };
 
 // Require admin access (redirects if not admin)
@@ -393,7 +393,7 @@ export const requireAdmin = async (): Promise<void> => {
   // First validate session ownership
   if (!validateSessionOwnership()) {
     console.log('[SessionAuth] Session validation failed, redirecting to login');
-    window.location.href = '/login';
+    window.location.replace('/login');
     return;
   }
   
@@ -401,7 +401,7 @@ export const requireAdmin = async (): Promise<void> => {
   console.log('[SessionAuth] requireAdmin - isAdmin result:', isAdmin);
   if (!isAdmin) {
     console.log('[SessionAuth] Not admin, redirecting to dashboard');
-    window.location.href = '/dashboard';
+    window.location.replace('/dashboard');
   } else {
     console.log('[SessionAuth] Admin access confirmed');
   }

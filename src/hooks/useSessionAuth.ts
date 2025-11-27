@@ -47,7 +47,7 @@ export const useSessionAuth = (options: UseSessionAuthOptions = {}): UseSessionA
       } else {
         // Default behavior: redirect to login
         removeToken();
-        window.location.href = '/login';
+        window.location.replace('/login');
       }
     } else {
       setIsValid(true);
@@ -62,7 +62,7 @@ export const useSessionAuth = (options: UseSessionAuthOptions = {}): UseSessionA
     removeToken();
     setIsValid(false);
     setUser(null);
-    window.location.href = '/login';
+    window.location.replace('/login');
   };
 
   // Initial validation on mount

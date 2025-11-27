@@ -28,12 +28,38 @@ export default function AdminDashboard() {
   const { isValid: sessionValid, isLoading: sessionLoading } = useSessionAuth({
     onSessionInvalid: () => {
       console.log('[Admin Dashboard] Session validation failed, redirecting to login');
-      window.location.href = '/login';
+      window.location.replace('/login');
     },
     validateOnMount: true,
     validateOnVisibilityChange: true,
     validateOnFocus: true
   });
+
+  // Intercept back button to logout automatically (same behavior as logout button)
+  useEffect(() => {
+    // Push a dummy state to intercept back button
+    window.history.pushState({ preventBack: true }, '', window.location.href);
+
+    const handlePopState = (event: PopStateEvent) => {
+      // User clicked back - cancel it by going forward and then logout
+      console.log('[Admin Dashboard] Back button pressed, cancelling and logging out');
+
+      // Cancel the back navigation by immediately going forward
+      window.history.go(1);
+
+      // Then logout with replace (same as logout button)
+      setTimeout(() => {
+        removeToken();
+        window.location.replace('/login');
+      }, 0);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
 
   useEffect(() => {
     console.log('[Admin Dashboard] Component mounting...');
@@ -62,7 +88,7 @@ export default function AdminDashboard() {
   const handleLogout = () => {
     // Use session-aware logout
     removeToken();
-    window.location.href = '/login';
+    window.location.replace('/login');
   };
 
   const handleNavigateToSecuritySettings = () => {

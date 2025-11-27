@@ -152,7 +152,7 @@ export const requireAdmin = async (): Promise<void> => {
   if (!isAdmin) {
     console.log('[Auth] Not admin, redirecting to dashboard');
     // Redirect to regular dashboard or show access denied
-    window.location.href = '/dashboard';
+    window.location.replace('/dashboard');
   } else {
     console.log('[Auth] Admin access confirmed');
   }
@@ -181,10 +181,10 @@ export const login = async (username: string, password: string): Promise<boolean
       // Redirect based on user role
       if (data.user.isAdmin) {
         console.log('[Auth] Admin user detected, redirecting to /admin');
-        window.location.href = '/admin';
+        window.location.replace('/admin');
       } else {
         console.log('[Auth] Regular user detected, redirecting to /dashboard');
-        window.location.href = '/dashboard';
+        window.location.replace('/dashboard');
       }
       
       return true;
@@ -203,7 +203,7 @@ export const login = async (username: string, password: string): Promise<boolean
 export const logout = (): void => {
   removeToken();
   removeStoredUser();
-  window.location.href = '/login';
+  window.location.replace('/login');
 };
 
 // Get auth token for API requests

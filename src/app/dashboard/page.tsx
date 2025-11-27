@@ -387,7 +387,7 @@ export default function Dashboard() {
       if (document.visibilityState === 'visible' && (!sessionValid || !validateSessionOwnership() || !isAuthenticated())) {
         console.log('[Dashboard] Auth check failed on visibility change, redirecting to login');
         removeToken();
-        window.location.href = '/login';
+        window.location.replace('/login');
       }
     };
 
