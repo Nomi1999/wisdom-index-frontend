@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Save, Target, TrendingUp, TrendingDown, DollarSign, Percent, Shield, PiggyBank, Home, Briefcase, Heart, PieChart } from 'lucide-react';
+import { Trash2, Save, Target, TrendingUp, TrendingDown, DollarSign, Percent, Shield, PiggyBank, Home, Briefcase, Heart, PieChart, RotateCcw } from 'lucide-react';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { buildApiUrl } from '@/lib/api';
 import { getAuthToken } from '@/utils/sessionAuth';
@@ -22,6 +22,7 @@ interface Targets {
 
 export function TargetManagement({ clientId }: TargetManagementProps) {
   const [targets, setTargets] = useState<Targets>({});
+  const [originalTargets, setOriginalTargets] = useState<Targets>({});
   const [currentMetrics, setCurrentMetrics] = useState<any>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -55,6 +56,7 @@ export function TargetManagement({ clientId }: TargetManagementProps) {
       if (targetsResponse.ok) {
         const targetsData = await targetsResponse.json();
         setTargets(targetsData.targets || {});
+        setOriginalTargets(targetsData.targets || {});
       }
     } catch (error) {
       console.error('Error loading targets:', error);
@@ -86,6 +88,7 @@ export function TargetManagement({ clientId }: TargetManagementProps) {
         const metricsData = await metricsResponse.json();
         
         setTargets(targetsData.targets || {});
+        setOriginalTargets(targetsData.targets || {});
         setCurrentMetrics(metricsData.metrics);
       }
     } catch (error) {
@@ -101,6 +104,10 @@ export function TargetManagement({ clientId }: TargetManagementProps) {
       ...prev,
       [metricName]: numValue
     }));
+  };
+  
+  const handleRevert = () => {
+    setTargets({...originalTargets});
   };
 
   const saveTargets = async () => {
@@ -545,6 +552,15 @@ export function TargetManagement({ clientId }: TargetManagementProps) {
                   </Badge>
                 </motion.div>
               )}
+              <Button
+                onClick={handleRevert}
+                variant="outline"
+                size="sm"
+                className="border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 shadow-sm hover:shadow-md hover:-translate-y-0.5"
+              >
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Revert
+              </Button>
               <Button
                 onClick={resetAllTargets}
                 variant="outline"
