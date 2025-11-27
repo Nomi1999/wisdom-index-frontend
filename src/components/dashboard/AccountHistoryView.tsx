@@ -164,20 +164,38 @@ export const AccountHistoryView: React.FC<AccountHistoryViewProps> = ({ authToke
   const getSelectedAccountName = () =>
     selectedAccountDetails?.account_name || selectedAccountDetails?.account_id || '';
 
-  return (
+return (
     <div className="flex flex-col gap-6 pb-8">
-      <section className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
-        <h2 className="text-2xl font-semibold text-gray-900">Account History</h2>
-        <p className="text-sm text-gray-600 mt-1">
-          {getSelectedAccountName()
-            ? `Viewing: ${getSelectedAccountName()}`
-            : 'Select an account to explore its history.'}
-        </p>
+      {/* Header Section */}
+      <section className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl shadow-lg border border-blue-100 p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+              Account History
+            </h2>
+            <p className="text-sm text-gray-600 mt-2">
+              {getSelectedAccountName()
+                ? `Viewing: ${getSelectedAccountName()}`
+                : 'Select an account to explore its history.'}
+            </p>
+          </div>
+          {selectedAccountDetails && (
+            <div className="text-right">
+              <p className="text-xs text-gray-500 uppercase tracking-wide">Current Value</p>
+              <p className="text-xl font-bold text-blue-600">
+                ${selectedAccountDetails.current_value?.toLocaleString() || '0'}
+              </p>
+            </div>
+          )}
+        </div>
       </section>
 
-      <section className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 space-y-6">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
+      {/* Controls Section */}
+      <section className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Select Account</label>
             <AccountSelector
               accounts={accounts}
               selectedAccount={selectedAccount}
@@ -186,7 +204,8 @@ export const AccountHistoryView: React.FC<AccountHistoryViewProps> = ({ authToke
             />
           </div>
 
-          <div className="flex-1">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Date Range</label>
             <DateRangePicker
               startDate={startDate}
               endDate={endDate}
@@ -197,32 +216,34 @@ export const AccountHistoryView: React.FC<AccountHistoryViewProps> = ({ authToke
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pt-4 border-t border-gray-100">
           <div className="flex gap-2">
             <Button
-              variant="outline"
+              variant={viewMode === 'chart' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setViewMode('chart')}
-              aria-pressed={viewMode === 'chart'}
               className={cn(
-                'transition-colors',
-                viewMode === 'chart' &&
-                  'border-blue-500 bg-blue-50 text-blue-700 shadow-[0_0_0_1px_rgba(59,130,246,0.3)]'
+                'transition-all duration-200',
+                viewMode === 'chart' && 'shadow-md'
               )}
             >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
               Chart View
             </Button>
             <Button
-              variant="outline"
+              variant={viewMode === 'table' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setViewMode('table')}
-              aria-pressed={viewMode === 'table'}
               className={cn(
-                'transition-colors',
-                viewMode === 'table' &&
-                  'border-blue-500 bg-blue-50 text-blue-700 shadow-[0_0_0_1px_rgba(59,130,246,0.3)]'
+                'transition-all duration-200',
+                viewMode === 'table' && 'shadow-md'
               )}
             >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
               Table View
             </Button>
           </div>
@@ -239,36 +260,77 @@ export const AccountHistoryView: React.FC<AccountHistoryViewProps> = ({ authToke
         </div>
       </section>
 
-      <section className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 space-y-4">
+      {/* Content Section */}
+      <section className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">{error}</div>
+          <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-md mb-6">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+            </div>
+          </div>
         )}
 
         {loading || !historyInitialized ? (
-          <div className="flex items-center justify-center min-h-[320px]">
+          <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4" />
-              <p className="text-gray-600">Loading account history...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4" />
+              <p className="text-gray-600 font-medium">Loading account history...</p>
+              <p className="text-sm text-gray-500 mt-1">This may take a moment</p>
             </div>
           </div>
         ) : viewMode === 'chart' ? (
           historyData.length === 0 ? (
-            <div className="flex items-center justify-center min-h-[320px]">
-              <div className="text-center text-gray-500">
-                <p>No data available for the selected period</p>
+            <div className="flex items-center justify-center min-h-[400px]">
+              <div className="text-center">
+                <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                <p className="text-gray-500 font-medium">No data available</p>
+                <p className="text-sm text-gray-400 mt-1">Try adjusting the date range or selecting a different account</p>
               </div>
             </div>
           ) : (
-            <TimeSeriesChart
-              data={historyData.map((point) => ({
-                date: point.as_of_date,
-                value: point.value
-              }))}
-              title="Account Value Over Time"
-              loading={false}
-              error={error || undefined}
-              showEmptyState={false}
-            />
+            <div className="space-y-4">
+              <TimeSeriesChart
+                data={historyData.map((point) => ({
+                  date: point.as_of_date,
+                  value: point.value
+                }))}
+                title="Account Value Over Time"
+                loading={false}
+                error={error || undefined}
+                showEmptyState={false}
+              />
+              
+              {/* Summary Statistics */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t border-gray-100">
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <p className="text-xs text-blue-600 font-medium uppercase tracking-wide">Starting Value</p>
+                  <p className="text-lg font-bold text-blue-900 mt-1">
+                    ${historyData[0]?.value?.toLocaleString() || '0'}
+                  </p>
+                </div>
+                <div className="bg-green-50 rounded-lg p-4">
+                  <p className="text-xs text-green-600 font-medium uppercase tracking-wide">Ending Value</p>
+                  <p className="text-lg font-bold text-green-900 mt-1">
+                    ${historyData[historyData.length - 1]?.value?.toLocaleString() || '0'}
+                  </p>
+                </div>
+                <div className="bg-purple-50 rounded-lg p-4">
+                  <p className="text-xs text-purple-600 font-medium uppercase tracking-wide">Data Points</p>
+                  <p className="text-lg font-bold text-purple-900 mt-1">
+                    {historyData.length}
+                  </p>
+                </div>
+              </div>
+            </div>
           )
         ) : (
           <HistoryTable
