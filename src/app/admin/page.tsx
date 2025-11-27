@@ -23,7 +23,6 @@ export default function AdminDashboard() {
   const [activeSettingsView, setActiveSettingsView] = useState<'overview' | 'security' | 'permissions' | 'ai-config'>('overview');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const collapsedSidebarWidth = '4rem';
-  const expandedSidebarWidth = '16rem';
 
   // Use session auth hook for validation
   const { isValid: sessionValid, isLoading: sessionLoading } = useSessionAuth({
@@ -93,6 +92,7 @@ export default function AdminDashboard() {
 
   const handleNavigationClick = (itemId: string) => {
     setActiveSection(itemId);
+    setSidebarOpen(false);
     if (itemId !== 'settings') {
       setActiveSettingsView('overview');
     }
@@ -273,8 +273,8 @@ export default function AdminDashboard() {
 
       {/* Main Content Area - Responsive margin */}
       <div
-        className="flex-1 flex flex-col transition-[margin-left] duration-300 ease-in-out"
-        style={{ marginLeft: sidebarOpen ? expandedSidebarWidth : collapsedSidebarWidth, willChange: 'margin-left' }}
+        className={`flex-1 flex flex-col transition-all duration-300 ease-in-out ${sidebarOpen ? 'blur-sm' : ''}`}
+        style={{ marginLeft: collapsedSidebarWidth, willChange: 'margin-left' }}
       >
         {/* Header with Logo - Glassmorphism effect */}
         <header className="bg-gradient-to-r from-blue-900/90 via-blue-800/90 to-blue-900/90 shadow-2xl sticky top-0 z-30 backdrop-blur-md border-b border-blue-700/30">

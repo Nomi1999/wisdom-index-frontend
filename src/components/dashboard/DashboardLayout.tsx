@@ -139,30 +139,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   initialExpenseChartData,
   chartsPrefetched
 }) => {
-  const [sidebarWidth, setSidebarWidth] = useState<number>(224); // default to md width (14rem)
   const collapsedSidebarWidth = 64; // 4rem expressed in px for layout spacing
   const isDashboardView = activeView === 'dashboard';
-
-  // Update sidebar width based on screen size
-  useEffect(() => {
-    const updateSidebarWidth = () => {
-      if (window.innerWidth >= 1280) { // xl breakpoint
-        setSidebarWidth(256); // 16rem
-      } else if (window.innerWidth >= 1024) { // lg breakpoint
-        setSidebarWidth(240); // 15rem
-      } else if (window.innerWidth >= 768) { // md breakpoint
-        setSidebarWidth(224); // 14rem
-      } else if (window.innerWidth >= 640) { // sm breakpoint
-        setSidebarWidth(208); // 13rem
-      } else {
-        setSidebarWidth(192); // 12rem
-      }
-    };
-
-    updateSidebarWidth();
-    window.addEventListener('resize', updateSidebarWidth);
-    return () => window.removeEventListener('resize', updateSidebarWidth);
-  }, []);
 
   const renderSecondaryView = () => {
     switch (activeView) {
@@ -268,12 +246,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       {/* Main Content Area - Responsive margin */}
       <div
-        className={`flex-1 flex flex-col transition-[margin-left] duration-300 ease-in-out ${isDashboardView ? 'h-full' : 'min-h-screen'
-          }`}
+        className={`flex-1 flex flex-col transition-all duration-300 ease-in-out ${isDashboardView ? 'h-full' : 'min-h-screen'
+          } ${sidebarOpen ? 'blur-sm' : ''}`}
         style={{
-          marginLeft: sidebarOpen ? sidebarWidth : collapsedSidebarWidth,
+          marginLeft: collapsedSidebarWidth,
           willChange: 'margin-left',
-          width: isDashboardView ? 'auto' : `calc(100vw - ${sidebarOpen ? sidebarWidth : collapsedSidebarWidth}px)`,
+          width: isDashboardView ? 'auto' : `calc(100vw - ${collapsedSidebarWidth}px)`,
           // Optimize for GPU acceleration during animation
           transform: 'translateZ(0)',
           backfaceVisibility: 'hidden' as const
