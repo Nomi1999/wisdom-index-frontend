@@ -310,17 +310,33 @@ return (
               />
               
               {/* Summary Statistics */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t border-gray-100">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-6 border-t border-gray-100">
                 <div className="bg-blue-50 rounded-lg p-4">
                   <p className="text-xs text-blue-600 font-medium uppercase tracking-wide">Starting Value</p>
                   <p className="text-lg font-bold text-blue-900 mt-1">
-                    ${historyData[0]?.value?.toLocaleString() || '0'}
+                    ${historyData[historyData.length - 1]?.value?.toLocaleString() || '0'}
                   </p>
                 </div>
                 <div className="bg-green-50 rounded-lg p-4">
                   <p className="text-xs text-green-600 font-medium uppercase tracking-wide">Ending Value</p>
                   <p className="text-lg font-bold text-green-900 mt-1">
-                    ${historyData[historyData.length - 1]?.value?.toLocaleString() || '0'}
+                    ${historyData[0]?.value?.toLocaleString() || '0'}
+                  </p>
+                </div>
+                <div className="bg-orange-50 rounded-lg p-4">
+                  <p className="text-xs text-orange-600 font-medium uppercase tracking-wide">Change</p>
+                  <p className={`text-lg font-bold mt-1 ${
+                    ((historyData[0]?.value || 0) - (historyData[historyData.length - 1]?.value || 0)) >= 0 
+                      ? 'text-green-600' 
+                      : 'text-red-600'
+                  }`}>
+                    {(() => {
+                      const start = historyData[historyData.length - 1]?.value || 0;
+                      const end = historyData[0]?.value || 0;
+                      if (start === 0) return '0.00%';
+                      const change = ((end - start) / start) * 100;
+                      return `${change > 0 ? '+' : ''}${change.toFixed(2)}%`;
+                    })()}
                   </p>
                 </div>
                 <div className="bg-purple-50 rounded-lg p-4">

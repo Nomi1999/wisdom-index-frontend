@@ -1,7 +1,19 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Area,
+  AreaChart
+} from 'recharts';
+import { format, parseISO } from 'date-fns';
 
 interface TimeSeriesChartProps {
   data: { date: string; value: number }[];
@@ -18,124 +30,29 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
   error,
   showEmptyState = true
 }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const chartRef = useRef<any>(null);
+  // Sort data by date and format for display
+  const sortedData = [...data]
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .map(item => ({
+      ...item,
+      displayDate: format(parseISO(item.date), 'MMM dd, yyyy'),
+      shortDate: format(parseISO(item.date), 'MMM dd')
+    }));
 
-  useEffect(() => {
-    if (!canvasRef.current || loading || error || data.length === 0) return;
-
-    // Dynamically import Chart.js to avoid SSR issues
-    const importChart = async () => {
-      const [{ default: Chart }] = await Promise.all([
-        import('chart.js/auto'),
-        import('chartjs-adapter-date-fns')
-      ]);
-
-      if (!canvasRef.current) return;
-
-      const ctx = canvasRef.current.getContext('2d');
-      if (!ctx) return;
-
-      const existingChart = Chart.getChart(ctx.canvas);
-      if (existingChart) {
-        existingChart.destroy();
-      } else if (chartRef.current) {
-        chartRef.current.destroy();
-      }
-
-      // Sort data by date
-      const sortedData = [...data].sort((a, b) => 
-        new Date(a.date).getTime() - new Date(b.date).getTime()
+  // Custom tooltip component
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+          <p className="text-sm font-medium text-gray-900">{label}</p>
+          <p className="text-sm text-blue-600 font-semibold">
+            Value: ${payload[0].value.toLocaleString()}
+          </p>
+        </div>
       );
-
-      chartRef.current = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: sortedData.map(item => item.date),
-          datasets: [{
-            label: 'Account Value',
-            data: sortedData.map(item => item.value),
-            borderColor: 'rgb(59, 130, 246)',
-            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-            borderWidth: 2,
-            fill: true,
-            tension: 0.1,
-            pointRadius: 3,
-            pointHoverRadius: 5,
-            pointBackgroundColor: 'rgb(59, 130, 246)',
-            pointBorderColor: '#fff',
-            pointBorderWidth: 2
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          interaction: {
-            mode: 'index',
-            intersect: false,
-          },
-          plugins: {
-            title: {
-              display: true,
-              text: title,
-              font: {
-                size: 16,
-                weight: 'bold'
-              }
-            },
-            legend: {
-              display: false
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  const value = context.parsed.y;
-                  return `Value: $${(value || 0).toLocaleString()}`;
-                }
-              }
-            }
-          },
-          scales: {
-            x: {
-              type: 'time',
-              time: {
-                parser: 'yyyy-MM-dd',
-                displayFormats: {
-                  day: 'MMM dd',
-                  month: 'MMM yyyy',
-                  year: 'yyyy'
-                }
-              },
-              title: {
-                display: true,
-                text: 'Date'
-              }
-            },
-            y: {
-              title: {
-                display: true,
-                text: 'Value ($)'
-              },
-              ticks: {
-                callback: function(value) {
-                  return '$' + Number(value).toLocaleString();
-                }
-              }
-            }
-          }
-        }
-      });
-    };
-
-    importChart();
-
-    return () => {
-      if (chartRef.current) {
-        chartRef.current.destroy();
-        chartRef.current = null;
-      }
-    };
-  }, [data, loading, error, title]);
+    }
+    return null;
+  };
 
   if (loading) {
     return (
@@ -179,11 +96,43 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
       transition={{ duration: 0.5 }}
       className="relative h-full w-full min-h-[260px]"
     >
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 w-full h-full"
-        style={{ width: '100%', height: '100%' }}
-      />
+      <div className="mb-4">
+        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+      </div>
+      <ResponsiveContainer width="100%" height={300}>
+        <AreaChart data={sortedData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+          <defs>
+            <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+          <XAxis 
+            dataKey="shortDate" 
+            stroke="#6b7280"
+            fontSize={12}
+            tickLine={false}
+            axisLine={false}
+          />
+          <YAxis 
+            stroke="#6b7280"
+            fontSize={12}
+            tickLine={false}
+            axisLine={false}
+            tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+          />
+          <Tooltip content={<CustomTooltip />} />
+          <Area
+            type="monotone"
+            dataKey="value"
+            stroke="#3b82f6"
+            strokeWidth={2}
+            fillOpacity={1}
+            fill="url(#colorValue)"
+          />
+        </AreaChart>
+      </ResponsiveContainer>
     </motion.div>
   );
 };
