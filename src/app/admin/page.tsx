@@ -271,6 +271,20 @@ export default function AdminDashboard() {
         )}
       </AnimatePresence>
 
+      {/* Overlay for main content when sidebar is open (Admin) */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/50 z-30" // z-30 is lower than sidebar z-40
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Main Content Area - Responsive margin */}
       <div
         className={`flex-1 flex flex-col transition-all duration-300 ease-in-out ${sidebarOpen ? 'blur-sm' : ''}`}

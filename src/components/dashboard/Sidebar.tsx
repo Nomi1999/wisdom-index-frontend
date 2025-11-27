@@ -132,7 +132,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Sidebar Overlay */}
       <AnimatePresence>
-        {sidebarOpen && shouldShowOverlay && (
+        {sidebarOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
