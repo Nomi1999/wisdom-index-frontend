@@ -11,6 +11,7 @@ import { Trash2, Save, Target, TrendingUp, TrendingDown, DollarSign, Percent, Sh
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { buildApiUrl } from '@/lib/api';
 import { getAuthToken } from '@/utils/sessionAuth';
+import { socket } from '@/lib/socket';
 
 interface TargetManagementProps {
   clientId: number;
@@ -39,6 +40,40 @@ export function TargetManagement({ clientId }: TargetManagementProps) {
 
   useEffect(() => {
     loadTargetsAndMetrics();
+
+    // Socket.IO logic
+    if (clientId) {
+      // Connect if not already connected
+      if (!socket.connected) {
+        socket.connect();
+      }
+
+      // Join the client-specific room
+      socket.emit('join', { client_id: clientId });
+
+      // Listen for real-time updates
+      const handleUpdates = (data: any) => {
+        console.log('Received target update:', data);
+        // Only refresh if the source is NOT 'admin' (to avoid double refresh if we wanted, 
+        // but actually we want to refresh to confirm data consistency or if another admin updated it)
+        // For simplicity, just refresh always or check source.
+        // If source is 'admin', it might be THIS admin, so we might have already updated local state optimistically?
+        // But the current implementation reloads from server after save anyway.
+        // So let's just reload.
+        loadTargetsOnly();
+      };
+
+      socket.on('targets_updated', handleUpdates);
+
+      // Cleanup
+      return () => {
+        socket.off('targets_updated', handleUpdates);
+        // We generally don't disconnect the socket here if it's shared, 
+        // but for this specific feature we might want to leave the room?
+        // Socket.IO doesn't have a simple 'leave' from client side without an event.
+        // It's fine, the server handles disconnects.
+      };
+    }
   }, [clientId]);
 
   const loadTargetsOnly = async () => {

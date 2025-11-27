@@ -4,12 +4,13 @@ import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import * as XLSX from 'xlsx';
-import { isAuthenticated, removeToken, validateSessionOwnership, getStoredUser } from '@/utils/sessionAuth';
+import { isAuthenticated, removeToken, validateSessionOwnership, getStoredUser, getCurrentUser } from '@/utils/sessionAuth';
 import { useSessionAuth } from '@/hooks/useSessionAuth';
 import { MetricDetailModal } from '@/components/MetricDetailModal';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { ClientDashboardView } from '@/types/dashboard';
 import { buildApiUrl } from '@/lib/api';
+import { socket } from '@/lib/socket';
 
 // Metrics by category for target management
 const metricsByCategory = {
@@ -444,6 +445,41 @@ export default function Dashboard() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!authToken) return;
+
+    const user = getCurrentUser();
+    // For regular clients, the JWT subject (sub) IS the client_id.
+    // For admins, it might be user_id, but this dashboard page is primarily for clients.
+    // If user.client_id is undefined, fallback to user.sub.
+    const clientId = user?.client_id || user?.sub;
+
+    if (clientId) {
+      console.log('[Dashboard] Connecting to socket for client:', clientId);
+      if (!socket.connected) {
+        socket.connect();
+      }
+      
+      socket.emit('join', { client_id: clientId });
+      
+      const handleUpdates = (data: any) => {
+        console.log('[Dashboard] Received target update event:', data);
+        // Reload targets and metrics
+        loadTargetsData();
+        reloadMetricsWithTargets();
+      };
+      
+      socket.on('targets_updated', handleUpdates);
+      
+      return () => {
+        console.log('[Dashboard] Cleaning up socket listeners');
+        socket.off('targets_updated', handleUpdates);
+      };
+    } else {
+      console.warn('[Dashboard] Could not determine client ID for socket connection', user);
+    }
+  }, [authToken]);
 
   // Load dashboard summary (metrics + targets + charts + client name)
   useEffect(() => {
