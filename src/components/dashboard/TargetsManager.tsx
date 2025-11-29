@@ -248,16 +248,17 @@ export const TargetsManager: React.FC<TargetsManagerProps> = ({
                 <p className="text-gray-600 text-sm">Set and track your financial goals</p>
               </div>
             </div>
-            <div className="flex flex-wrap gap-3 items-center">
+<div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
               {/* Save Message Badge equivalent - showing success status */}
               {(saveTargetsSuccess || resetTargetsSuccess) && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.2 }}
+                  className="w-full sm:w-auto"
                 >
                   <Badge
-                    className={`px-3 py-2 text-sm font-medium shadow-md ${
+                    className={`px-3 py-2 text-sm font-medium shadow-md w-full sm:w-auto text-center ${
                         'bg-green-100 text-green-800 border-green-200'
                     }`}
                   >
@@ -266,41 +267,43 @@ export const TargetsManager: React.FC<TargetsManagerProps> = ({
                 </motion.div>
               )}
 
-              <Button
-                onClick={discardChanges}
-                variant="outline"
-                size="sm"
-                className="bg-white/80 backdrop-blur-sm text-gray-700 border-gray-200/80 hover:bg-white hover:text-gray-900 hover:border-gray-300 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
-              >
-                <RotateCcw className="w-4 h-4 mr-2" />
-                Revert
-              </Button>
-              
-              <Button
-                onClick={handleResetAllTargets}
-                disabled={resetTargetsLoading || resetTargetsSuccess}
-                variant="outline"
-                size="sm"
-                className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-all duration-200 shadow-sm hover:shadow-md hover:-translate-y-0.5"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Reset All
-              </Button>
-              
-              <Button
-                onClick={saveTargets}
-                disabled={saveTargetsLoading || saveTargetsSuccess}
-                size="sm"
-                className="bg-gradient-to-r from-blue-900 to-blue-800 hover:from-blue-800 hover:to-blue-700 text-white transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center gap-2"
-              >
-                <Save className="w-4 h-4" />
-                {saveTargetsLoading ? (
-                  <span className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    Saving...
-                  </span>
-                ) : 'Save Changes'}
-              </Button>
+              <div className="flex gap-2 w-full sm:w-auto">
+                <Button
+                  onClick={discardChanges}
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 sm:flex-none bg-white/80 backdrop-blur-sm text-gray-700 border-gray-200/80 hover:bg-white hover:text-gray-900 hover:border-gray-300 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 text-xs sm:text-sm"
+                >
+                  <RotateCcw className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Revert</span>
+                </Button>
+                
+                <Button
+                  onClick={handleResetAllTargets}
+                  disabled={resetTargetsLoading || resetTargetsSuccess}
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 sm:flex-none border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-all duration-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 text-xs sm:text-sm"
+                >
+                  <Trash2 className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Reset All</span>
+                </Button>
+                
+                <Button
+                  onClick={saveTargets}
+                  disabled={saveTargetsLoading || saveTargetsSuccess}
+                  size="sm"
+                  className="flex-1 sm:flex-none bg-gradient-to-r from-blue-900 to-blue-800 hover:from-blue-800 hover:to-blue-700 text-white transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center gap-2 text-xs sm:text-sm"
+                >
+                  <Save className="w-4 h-4" />
+                  {saveTargetsLoading ? (
+                    <span className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      <span className="hidden sm:inline">Saving...</span>
+                    </span>
+                  ) : <span className="hidden sm:inline">Save Changes</span>}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -376,8 +379,8 @@ export const TargetsManager: React.FC<TargetsManagerProps> = ({
                         {categoryStyle.icon}
                         </div>
                         <h4 className="text-lg font-bold text-white">{categoryTitle}</h4>
-                        <div className="ml-auto">
-                        <div className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 text-white text-sm font-medium">
+<div className="ml-auto">
+                        <div className="bg-white/20 backdrop-blur-sm rounded-full px-2 sm:px-3 py-1 text-white text-xs sm:text-sm font-medium whitespace-nowrap">
                             {categoryMetrics.length} metrics
                         </div>
                         </div>

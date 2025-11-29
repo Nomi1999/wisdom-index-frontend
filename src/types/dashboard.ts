@@ -4,4 +4,5 @@ export type ClientDashboardView =
   | 'advisor'
   | 'targets'
   | 'account-history'
-  | 'visualizations';
+  | 'visualizations'
+  | 'ai-insights';

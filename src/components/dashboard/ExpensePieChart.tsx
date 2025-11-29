@@ -25,6 +25,14 @@ export const ExpensePieChart: React.FC<ExpensePieChartProps> = ({
   initialData,
   prefetchComplete
 }) => {
+  console.log('ExpensePieChart: Component props received', {
+    authToken: !!authToken,
+    isInitialLoad,
+    hasInitialData: Array.isArray(initialData),
+    initialDataLength: initialData?.length,
+    prefetchComplete,
+    initialData: initialData
+  });
   const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
   const [chartData, setChartData] = useState<ExpenseChartDataPoint[]>([]);
@@ -35,6 +43,7 @@ export const ExpensePieChart: React.FC<ExpensePieChartProps> = ({
   const isMountedRef = useRef(true);
   const isFetchingRef = useRef(false);
   const wasVisibleRef = useRef(false);
+  const hasProcessedInitialDataRef = useRef(false);
   
   const isChartVisible = useVisibilityObserver(containerRef, {
     threshold: [0.35, 0.6, 0.85, 0.95],
@@ -141,7 +150,8 @@ export const ExpensePieChart: React.FC<ExpensePieChartProps> = ({
 
   // Load expense pie chart
   const loadExpensePieChart = async () => {
-    if (!authToken || !isMountedRef.current || isFetchingRef.current) return;
+    console.log('ExpensePieChart: Attempting to load from API');
+    if (!authToken || isFetchingRef.current) return;
 
     isFetchingRef.current = true;
     try {
@@ -153,8 +163,9 @@ export const ExpensePieChart: React.FC<ExpensePieChartProps> = ({
         }
       });
 
-      if (response.ok && isMountedRef.current) {
+      if (response.ok) {
         const data = await response.json();
+        console.log('ExpensePieChart: API response received', data);
         const normalized: ExpenseChartDataPoint[] = data.data.map((item: any) => ({
           category: item.expense_category,
           amount: parseFloat(item.amount) || 0
@@ -162,38 +173,68 @@ export const ExpensePieChart: React.FC<ExpensePieChartProps> = ({
 
         onChartDataUpdate(normalized);
         setPendingDataset(normalized);
+      } else {
+        console.log('ExpensePieChart: API response not OK', response.status);
+        // If API fails, stop loading
+        setLoading(false);
       }
     } catch (error) {
       console.error('Expense chart error:', error);
+      // If API fails, stop loading
+      setLoading(false);
     } finally {
       isFetchingRef.current = false;
     }
   };
 
-  // Load chart when prefetched data is unavailable
+  // Simplified data loading logic
   useEffect(() => {
-    if (Array.isArray(initialData)) {
-      setPendingDataset(initialData);
-    }
-  }, [initialData]);
-
-  useEffect(() => {
+    console.log('ExpensePieChart: Checking data loading conditions', {
+      prefetchComplete,
+      hasInitialData: Array.isArray(initialData),
+      initialDataLength: initialData?.length,
+      hasPendingDataset: !!pendingDataset,
+      pendingDatasetLength: pendingDataset?.length,
+      chartDataLength: chartData.length,
+      loading
+    });
+    
     if (!prefetchComplete) return;
-    if (Array.isArray(initialData)) return;
-    if (pendingDataset) return;
+    
+    // If we have initial data, use it directly
+    if (Array.isArray(initialData) && initialData.length > 0) {
+      console.log('ExpensePieChart: Using initial data directly');
+      setChartData(initialData);
+      setLoading(false);
+      return;
+    }
+    
+    // If we have pending dataset, use it
+    if (pendingDataset && pendingDataset.length > 0) {
+      console.log('ExpensePieChart: Using pending dataset');
+      setChartData(pendingDataset);
+      setLoading(false);
+      return;
+    }
+    
+    // If we already have chart data, we're done
+    if (chartData.length > 0) {
+      console.log('ExpensePieChart: Already have chart data');
+      setLoading(false);
+      return;
+    }
+    
+    // Otherwise load from API
+    console.log('ExpensePieChart: Loading from API');
     loadExpensePieChart();
-  }, [prefetchComplete, pendingDataset, authToken, initialData]);
+  }, [prefetchComplete, initialData, pendingDataset, chartData.length]);
 
+  // Handle API loading completion
   useEffect(() => {
-    if (pendingDataset && isMountedRef.current) {
-      // Add a small delay to ensure animation triggers on initial load
-      const timer = setTimeout(() => {
-        if (isMountedRef.current) {
-          setChartData(pendingDataset);
-          setLoading(false);
-        }
-      }, 100);
-      return () => clearTimeout(timer);
+    if (pendingDataset && pendingDataset.length > 0) {
+      console.log('ExpensePieChart: Processing pending dataset from API');
+      setChartData(pendingDataset);
+      setLoading(false);
     }
   }, [pendingDataset]);
 
@@ -205,11 +246,11 @@ export const ExpensePieChart: React.FC<ExpensePieChartProps> = ({
   }, [chartData, isChartVisible]);
 
   useEffect(() => {
-    if (!isChartVisible && !wasVisibleRef.current) {
+    if (isChartVisible && !wasVisibleRef.current && chartData.length > 0) {
       // Chart became visible, trigger any needed animations
       wasVisibleRef.current = true;
     }
-  }, [isChartVisible]);
+  }, [isChartVisible, chartData.length]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -228,16 +269,20 @@ export const ExpensePieChart: React.FC<ExpensePieChartProps> = ({
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
           <span className="text-xs text-slate-500">Live</span>
+          {/* Debug info */}
+          <span className="text-xs text-slate-400 ml-2" style={{fontSize: '10px'}}>
+            {loading ? 'Loading...' : 'Ready'} ({chartData.length} items)
+          </span>
         </div>
       </div>
       <div className="relative w-full h-full flex-1 min-h-0 flex items-center justify-center">
-        {loading ? (
+        {loading && chartData.length === 0 ? (
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-slate-500 text-sm leading-none animate-pulse flex justify-center items-center z-10">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-600"></div>
           </div>
         ) : chartData.length > 0 ? (
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart key={`chart-${chartData.length}-${JSON.stringify(chartData)}`}>
+           <ResponsiveContainer width="100%" height="100%">
+            <PieChart key={`chart-${chartData.length}-${wasVisibleRef.current ? 'visible' : 'hidden'}`}>
               <Pie
                 data={chartData}
                 cx="50%"
@@ -248,7 +293,7 @@ export const ExpensePieChart: React.FC<ExpensePieChartProps> = ({
                 fill="#8884d8"
                 dataKey="amount"
                 nameKey="category"
-                animationBegin={0}
+                animationBegin={wasVisibleRef.current ? 0 : 800}
                 animationDuration={1200}
                 animationEasing="ease-in-out"
               >

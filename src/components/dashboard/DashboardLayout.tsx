@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Header } from './Header';
+import { ResponsiveHeader } from './MobileHeader';
+import { MobileBottomNav } from './MobileBottomNav';
 import { Sidebar } from './Sidebar';
 import { MetricsGrid } from './MetricsGrid';
 import { ChartsSection } from './ChartsSection';
@@ -13,6 +14,11 @@ import { TargetsManager } from './TargetsManager';
 import { AccountHistoryView } from './AccountHistoryView';
 import { VisualizationsView } from './VisualizationsView';
 import { ClientDashboardView } from '@/types/dashboard';
+import { useMobileDetection } from '@/hooks/useMobileDetection';
+import { MobileLoadingScreen } from './MobileLoadingScreen';
+import { MobileDashboard } from './MobileDashboard';
+import { MobileAIInsights } from './MobileAIInsights';
+import { MobileChartsView } from './MobileChartsView';
 
 interface DashboardLayoutProps {
   clientName: string;
@@ -39,8 +45,9 @@ interface DashboardLayoutProps {
   handleContactAdvisor: () => void;
   handleManageTargets: () => void;
   handleExportData: (e: React.MouseEvent) => void;
-  handleViewAccountHistory: () => void;
+handleViewAccountHistory: () => void;
   handleViewVisualizations: () => void;
+  handleViewAIInsights: () => void;
   exportStatus: 'idle' | 'exporting' | 'exported';
   profileLoading: boolean;
   profileData: any;
@@ -72,7 +79,7 @@ interface DashboardLayoutProps {
   isInitialLoad: boolean;
   metricsByCategory: Record<string, any[]>;
   hasGeneratedInsights: boolean;
-  initialIncomeChartData: any[] | null;
+initialIncomeChartData: any[] | null;
   initialExpenseChartData: any[] | null;
   chartsPrefetched: boolean;
 }
@@ -102,8 +109,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   handleContactAdvisor,
   handleManageTargets,
   handleExportData,
-  handleViewAccountHistory,
+handleViewAccountHistory,
   handleViewVisualizations,
+  handleViewAIInsights,
   exportStatus,
   profileLoading,
   profileData,
@@ -135,14 +143,20 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   isInitialLoad,
   metricsByCategory,
   hasGeneratedInsights,
-  initialIncomeChartData,
+initialIncomeChartData,
   initialExpenseChartData,
   chartsPrefetched
 }) => {
-  const collapsedSidebarWidth = 64; // 4rem expressed in px for layout spacing
+  const { isMobile, isLoading } = useMobileDetection();
+  const collapsedSidebarWidth = isMobile ? 0 : 64; // Hide sidebar on mobile
   const isDashboardView = activeView === 'dashboard';
 
-  const renderSecondaryView = () => {
+  // Show loading screen while detecting device type
+  if (isLoading) {
+    return <MobileLoadingScreen />;
+  }
+
+const renderSecondaryView = () => {
     switch (activeView) {
       case 'profile':
         return (
@@ -195,10 +209,30 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             <AccountHistoryView authToken={authToken} />
           </div>
         );
-      case 'visualizations':
+case 'visualizations':
         return (
           <div className="w-full h-full flex flex-col">
-            <VisualizationsView authToken={authToken} />
+            {isMobile ? (
+              <MobileChartsView authToken={authToken} />
+            ) : (
+              <VisualizationsView authToken={authToken} />
+            )}
+          </div>
+        );
+      case 'ai-insights':
+        return (
+          <div className="w-full h-full flex flex-col">
+            <MobileAIInsights
+              insightsOverlayOpen={insightsOverlayOpen}
+              insightsSlideUp={insightsSlideUp}
+              buttonVisible={buttonVisible}
+              insightsLoading={insightsLoading}
+              insightsContent={insightsContent}
+              generateInsights={generateInsights}
+              closeInsights={closeInsights}
+              isInitialLoad={isInitialLoad}
+              hasGeneratedInsights={hasGeneratedInsights}
+            />
           </div>
         );
       default:
@@ -207,18 +241,61 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   };
   return (
     <div
-      className={`bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 flex ${isDashboardView ? 'h-screen overflow-hidden' : 'min-h-screen w-full'
+      className={`${isMobile && isDashboardView ? 'bg-gray-50' : 'bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100'} flex ${isDashboardView ? (isMobile ? 'min-h-screen w-screen' : 'h-screen overflow-hidden') : 'min-h-screen w-full'
         }`}
+      style={isMobile && isDashboardView ? { width: '100vw', maxWidth: '100vw', overflow: 'visible' } : {}}
     >
-      {/* Floating Close Button When Sidebar Expanded */}
-      {sidebarOpen && (
+      {/* CSS to prevent flash of desktop UI on mobile */}
+      <style jsx>{`
+        @media (max-width: 768px) {
+          .desktop-sidebar {
+            display: none !important;
+          }
+          .desktop-close-button {
+            display: none !important;
+          }
+          .mobile-dashboard-container {
+            width: 100vw !important;
+            max-width: 100vw !important;
+            min-width: 100vw !important;
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+            position: relative !important;
+            left: 0 !important;
+            right: 0 !important;
+            height: auto !important;
+          }
+          .mobile-dashboard-content {
+            width: 100% !important;
+            max-width: 100% !important;
+            flex: 1 !important;
+            overflow-y: auto !important;
+            height: auto !important;
+          }
+          /* Reset any container constraints */
+          .mobile-dashboard-container > * {
+            max-width: none !important;
+          }
+          /* Ensure full viewport width but allow vertical scrolling */
+          body {
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+          }
+          html {
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+          }
+        }
+      `}</style>
+      {/* Floating Close Button When Sidebar Expanded - Only show on desktop */}
+      {!isMobile && sidebarOpen && (
         <button
           onClick={() => {
             setSidebarOpen(false);
             // Emit custom event for chart components to listen to
             window.dispatchEvent(new CustomEvent('sidebarToggle'));
           }}
-          className="fixed left-4 top-4 z-[70] bg-blue-900/90 hover:bg-blue-800 text-white p-2 rounded-lg shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white/50"
+          className="desktop-close-button fixed left-4 top-4 z-[70] bg-blue-900/90 hover:bg-blue-800 text-white p-2 rounded-lg shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white/50"
           aria-label="Collapse sidebar"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -227,38 +304,45 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         </button>
       )}
 
-      {/* Animated Sidebar */}
-      <Sidebar
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-        handleLogout={handleLogout}
-        handleShowDashboard={handleShowDashboard}
-        handleViewProfile={handleViewProfile}
-        handleContactAdvisor={handleContactAdvisor}
-        handleManageTargets={handleManageTargets}
-        handleExportData={handleExportData}
-        handleViewAccountHistory={handleViewAccountHistory}
-        handleViewVisualizations={handleViewVisualizations}
-        exportStatus={exportStatus}
-        clientName={clientName}
-        activeView={activeView}
-      />
+      {/* Animated Sidebar - Only show on desktop */}
+      {!isMobile && (
+        <div className="desktop-sidebar">
+          <Sidebar
+            sidebarOpen={sidebarOpen}
+            setSidebarOpen={setSidebarOpen}
+            handleLogout={handleLogout}
+            handleShowDashboard={handleShowDashboard}
+            handleViewProfile={handleViewProfile}
+            handleContactAdvisor={handleContactAdvisor}
+            handleManageTargets={handleManageTargets}
+            handleExportData={handleExportData}
+            handleViewAccountHistory={handleViewAccountHistory}
+            handleViewVisualizations={handleViewVisualizations}
+            exportStatus={exportStatus}
+            clientName={clientName}
+            activeView={activeView}
+          />
+        </div>
+      )}
 
       {/* Main Content Area - Responsive margin */}
       <div
-        className={`flex-1 flex flex-col transition-all duration-300 ease-in-out ${isDashboardView ? 'h-full' : 'min-h-screen'
-          } ${sidebarOpen ? 'blur-sm' : ''}`}
+        className={`flex-1 flex flex-col transition-all duration-300 ease-in-out ${isDashboardView ? (isMobile ? 'min-h-screen' : 'h-full') : 'min-h-screen'
+          } ${!isMobile && sidebarOpen ? 'blur-sm' : ''}`}
         style={{
-          marginLeft: collapsedSidebarWidth,
-          willChange: 'margin-left',
-          width: isDashboardView ? 'auto' : `calc(100vw - ${collapsedSidebarWidth}px)`,
+          marginLeft: isMobile ? 0 : collapsedSidebarWidth,
+          willChange: isMobile ? 'auto' : 'margin-left',
+          width: isDashboardView ? (isMobile ? '100vw' : 'auto') : isMobile ? '100vw' : `calc(100vw - ${collapsedSidebarWidth}px)`,
+          maxWidth: isMobile && isDashboardView ? '100vw' : 'none',
+          minWidth: isMobile && isDashboardView ? '100vw' : 'auto',
+          overflow: isMobile && isDashboardView ? 'visible' : 'auto',
           // Optimize for GPU acceleration during animation
           transform: 'translateZ(0)',
           backfaceVisibility: 'hidden' as const
         }}
       >
         {/* Header */}
-        <Header
+        <ResponsiveHeader
           clientName={clientName}
           setSidebarOpen={setSidebarOpen}
           isInitialLoad={isInitialLoad}
@@ -266,50 +350,64 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         />
 
         {/* Main Content */}
-        <main
-          className={`flex-1 ${activeView === 'visualizations' ? 'p-2' : 'p-3 sm:p-4 lg:p-6'} flex flex-col ${isDashboardView ? 'min-h-0 overflow-hidden' : 'min-h-[auto] overflow-visible'
+<main
+          className={`flex-1 ${activeView === 'visualizations' ? 'p-2' : (isMobile && isDashboardView ? 'p-0' : 'p-3 sm:p-4 lg:p-6')} flex flex-col ${isDashboardView ? (isMobile ? 'min-h-screen overflow-visible' : 'min-h-0 overflow-hidden') : 'min-h-[auto] overflow-visible'
             }`}
         >
-          <div className={`${isDashboardView ? 'flex' : 'hidden'} flex-1 min-h-0`}>
-            <div className={`grid grid-cols-1 xl:grid-cols-[1fr_400px] gap-2 sm:gap-2 md:gap-3 lg:gap-4 w-full flex-1 min-h-0 ${isInitialLoad ? '' : ''}`}>
-              <div className="min-h-0 overflow-hidden flex flex-col">
-                <MetricsGrid
+<div className={`${isDashboardView ? 'flex' : 'hidden'} flex-1 min-h-0`}>
+            {isMobile ? (
+              // Mobile Dashboard View
+              <div className="mobile-dashboard-content" style={{ width: '100%', maxWidth: '100%' }}>
+                <MobileDashboard
                   metricsData={metricsData}
                   loading={loading}
                   metricsLoaded={metricsLoaded}
                   targetsLoaded={targetsLoaded}
                   handleMetricCardClick={handleMetricCardClick}
-                  isInitialLoad={isInitialLoad}
                 />
               </div>
-
-              <div className={`flex flex-col gap-1 sm:gap-1.5 md:gap-2 lg:gap-3 min-h-0 pl-0 lg:pl-3 border-l-0 lg:border-l-2 border-gray-200 relative ${isInitialLoad ? '' : ''}`}>
-                <div className="flex-1 min-h-0 overflow-hidden">
-                  <ChartsSection
-                    authToken={authToken}
-                    onChartDataUpdate={onChartDataUpdate}
+            ) : (
+              // Desktop Dashboard View
+              <div className={`grid grid-cols-1 xl:grid-cols-[1fr_400px] gap-2 sm:gap-2 md:gap-3 lg:gap-4 w-full flex-1 min-h-0 ${isInitialLoad ? '' : ''}`}>
+                <div className="min-h-0 overflow-hidden flex flex-col">
+                  <MetricsGrid
+                    metricsData={metricsData}
+                    loading={loading}
+                    metricsLoaded={metricsLoaded}
+                    targetsLoaded={targetsLoaded}
+                    handleMetricCardClick={handleMetricCardClick}
                     isInitialLoad={isInitialLoad}
-                    initialIncomeData={initialIncomeChartData || undefined}
-                    initialExpenseData={initialExpenseChartData || undefined}
-                    prefetchComplete={chartsPrefetched}
                   />
                 </div>
 
-                <div className="flex-shrink-0">
-                  <AIInsights
-                    insightsOverlayOpen={insightsOverlayOpen}
-                    insightsSlideUp={insightsSlideUp}
-                    buttonVisible={buttonVisible}
-                    insightsLoading={insightsLoading}
-                    insightsContent={insightsContent}
-                    generateInsights={generateInsights}
-                    closeInsights={closeInsights}
-                    isInitialLoad={isInitialLoad}
-                    hasGeneratedInsights={hasGeneratedInsights}
-                  />
+                <div className={`flex flex-col gap-1 sm:gap-1.5 md:gap-2 lg:gap-3 min-h-0 pl-0 lg:pl-3 border-l-0 lg:border-l-2 border-gray-200 relative ${isInitialLoad ? '' : ''}`}>
+                  <div className="flex-1 min-h-0 overflow-hidden">
+                    <ChartsSection
+                      authToken={authToken}
+                      onChartDataUpdate={onChartDataUpdate}
+                      isInitialLoad={isInitialLoad}
+                      initialIncomeData={initialIncomeChartData || undefined}
+                      initialExpenseData={initialExpenseChartData || undefined}
+                      prefetchComplete={chartsPrefetched}
+                    />
+                  </div>
+
+                  <div className="flex-shrink-0">
+                    <AIInsights
+                      insightsOverlayOpen={insightsOverlayOpen}
+                      insightsSlideUp={insightsSlideUp}
+                      buttonVisible={buttonVisible}
+                      insightsLoading={insightsLoading}
+                      insightsContent={insightsContent}
+                      generateInsights={generateInsights}
+                      closeInsights={closeInsights}
+                      isInitialLoad={isInitialLoad}
+                      hasGeneratedInsights={hasGeneratedInsights}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           {!isDashboardView && (
@@ -349,6 +447,40 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           </div>
         </div>
       )}
+
+{/* Mobile Bottom Navigation */}
+      <MobileBottomNav
+        activeView={activeView}
+        onViewChange={(view) => {
+          switch (view) {
+            case 'dashboard':
+              handleShowDashboard();
+              break;
+            case 'profile':
+              handleViewProfile();
+              break;
+            case 'advisor':
+              handleContactAdvisor();
+              break;
+            case 'targets':
+              handleManageTargets();
+              break;
+            case 'account-history':
+              handleViewAccountHistory();
+              break;
+            case 'visualizations':
+              handleViewVisualizations();
+              break;
+            case 'ai-insights':
+              handleViewAIInsights();
+              break;
+          }
+        }}
+        onLogout={handleLogout}
+        onExportData={handleExportData}
+        exportStatus={exportStatus}
+        clientName={clientName}
+      />
     </div>
   );
 };

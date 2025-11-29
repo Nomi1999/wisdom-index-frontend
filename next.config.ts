@@ -9,9 +9,22 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   // Configure trailing slash behavior
   trailingSlash: true,
-  // Configure image domains if needed
+  // Configure image patterns for security
   images: {
-    domains: ['localhost'],
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '**',
+        port: '',
+        pathname: '/**',
+      },
+    ],
   },
 };
 

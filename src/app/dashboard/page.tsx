@@ -6,11 +6,13 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import * as XLSX from 'xlsx';
 import { isAuthenticated, removeToken, validateSessionOwnership, getStoredUser, getCurrentUser } from '@/utils/sessionAuth';
 import { useSessionAuth } from '@/hooks/useSessionAuth';
+import { useMobileDetection } from '@/hooks/useMobileDetection';
 import { MetricDetailModal } from '@/components/MetricDetailModal';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { ClientDashboardView } from '@/types/dashboard';
 import { buildApiUrl } from '@/lib/api';
 import { socket } from '@/lib/socket';
+import { MobileLoadingScreen } from '@/components/dashboard/MobileLoadingScreen';
 
 // Metrics by category for target management
 const metricsByCategory = {
@@ -86,6 +88,7 @@ export default function Dashboard() {
   const [hasGeneratedInsights, setHasGeneratedInsights] = useState(false);
   const [insightsSlideUp, setInsightsSlideUp] = useState(false);
   const [activeView, setActiveView] = useState<ClientDashboardView>('dashboard');
+  const [isDeviceDetected, setIsDeviceDetected] = useState(false);
 
   // Profile data state
   const [profileLoading, setProfileLoading] = useState(false);
@@ -96,6 +99,24 @@ export default function Dashboard() {
   const handleProfileUpdate = (updatedProfile: any) => {
     setProfileData(updatedProfile);
   };
+
+  // Initial device detection to prevent flash
+  useEffect(() => {
+    const checkDevice = () => {
+      const width = window.innerWidth;
+      const userAgent = window.navigator.userAgent;
+      const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+      const isMobileDevice = mobileRegex.test(userAgent) || width <= 768;
+      
+      // Small delay to ensure consistent rendering
+      setTimeout(() => {
+        setIsDeviceDetected(true);
+      }, 50);
+    };
+
+    // Check immediately
+    checkDevice();
+  }, []);
 
   // Targets management state
   const [targetsLoading, setTargetsLoading] = useState(false);
@@ -318,7 +339,7 @@ export default function Dashboard() {
     };
   }, []);
 
-  // Use session auth hook for validation
+// Use session auth hook for validation
   const { isValid: sessionValid, isLoading: sessionLoading, user: sessionUser } = useSessionAuth({
     onSessionInvalid: () => {
       console.log('[Dashboard] Session validation failed, redirecting to login');
@@ -329,6 +350,9 @@ export default function Dashboard() {
     validateOnVisibilityChange: true,
     validateOnFocus: true
   });
+
+  // Mobile detection for modal handling
+  const { isMobile } = useMobileDetection();
 
   // Load token from sessionStorage synchronously before paint & verify auth
   useLayoutEffect(() => {
@@ -408,10 +432,13 @@ export default function Dashboard() {
     };
   }, [authToken]);
 
-  useEffect(() => {
+useEffect(() => {
     if (!authToken) return;
 
-    if (activeView === 'dashboard') {
+    // Check if mobile device
+    const isMobileDevice = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(window.navigator.userAgent);
+
+    if (activeView === 'dashboard' && !isMobileDevice) {
       document.body.classList.add('dashboard-scroll-lock');
     } else {
       document.body.classList.remove('dashboard-scroll-lock');
@@ -524,6 +551,14 @@ export default function Dashboard() {
 
         const normalizedIncome = normalizeChartData(data.charts?.income, 'income');
         const normalizedExpense = normalizeChartData(data.charts?.expense, 'expense');
+        
+        console.log('Dashboard: Chart data from API', {
+          rawIncomeData: data.charts?.income,
+          rawExpenseData: data.charts?.expense,
+          normalizedIncome: normalizedIncome,
+          normalizedExpense: normalizedExpense
+        });
+        
         setChartDataCache({
           income: normalizedIncome ?? null,
           expense: normalizedExpense ?? null
@@ -1023,10 +1058,18 @@ export default function Dashboard() {
     setActiveView('account-history');
   };
 
-  // Visualizations view
+// Visualizations view
   const handleViewVisualizations = () => {
     setSidebarOpen(false);
     setActiveView('visualizations');
+  };
+
+  // AI Insights view
+  const handleViewAIInsights = () => {
+    setSidebarOpen(false);
+    setActiveView('ai-insights');
+    // Just navigate to the AI insights page without auto-generating
+    // User will need to click the "Generate Insights" button manually
   };
 
   const handleShowDashboard = () => {
@@ -1252,6 +1295,11 @@ export default function Dashboard() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [showResetConfirmation, insightsOverlayOpen, metricDetailModalOpen, sidebarOpen, closeInsights]);
 
+  // Show loading screen while detecting device or during initial load to prevent double loading screens
+  if (!isDeviceDetected || (!metricsLoaded && !targetsLoaded)) {
+    return <MobileLoadingScreen />;
+  }
+
   return (
     <ErrorBoundary>
       <DashboardLayout
@@ -1279,8 +1327,9 @@ export default function Dashboard() {
         handleContactAdvisor={handleContactAdvisor}
         handleManageTargets={handleManageTargets}
         handleExportData={handleExportData}
-        handleViewAccountHistory={handleViewAccountHistory}
+handleViewAccountHistory={handleViewAccountHistory}
         handleViewVisualizations={handleViewVisualizations}
+        handleViewAIInsights={handleViewAIInsights}
         exportStatus={exportStatus}
         profileLoading={profileLoading}
         profileData={profileData}
@@ -1312,18 +1361,20 @@ export default function Dashboard() {
         isInitialLoad={isInitialLoad}
         metricsByCategory={metricsByCategory}
         hasGeneratedInsights={hasGeneratedInsights}
-        initialIncomeChartData={chartDataCache.income}
+initialIncomeChartData={chartDataCache.income}
         initialExpenseChartData={chartDataCache.expense}
         chartsPrefetched={chartsPrefetched}
       />
 
-      {/* Metric Detail Modal */}
-      <MetricDetailModal
-        isOpen={metricDetailModalOpen}
-        onClose={handleCloseMetricDetailModal}
-        metricName={selectedMetricName}
-        categoryName={selectedCategoryName}
-      />
+{/* Metric Detail Modal - Desktop Only */}
+      {!isMobile && (
+        <MetricDetailModal
+          isOpen={metricDetailModalOpen}
+          onClose={handleCloseMetricDetailModal}
+          metricName={selectedMetricName}
+          categoryName={selectedCategoryName}
+        />
+      )}
     </ErrorBoundary>
   );
 }
