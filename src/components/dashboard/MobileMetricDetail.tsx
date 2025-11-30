@@ -371,9 +371,7 @@ export const MobileMetricDetail: React.FC<MobileMetricDetailProps> = ({
                       </svg>
                     </div>
                     <span className="tracking-tight">Overview</span>
-                    {activeTab === 'overview' && (
-                      <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                    )}
+                    
                   </button>
                   
                   {metricDetail.tables.map((tableName, index) => (
@@ -396,9 +394,7 @@ export const MobileMetricDetail: React.FC<MobileMetricDetailProps> = ({
                         </svg>
                       </div>
                       <span className="tracking-tight capitalize">{tableName.replace(/_/g, ' ')}</span>
-                      {activeTab === tableName && (
-                        <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                      )}
+                      
                     </button>
                   ))}
                 </div>
