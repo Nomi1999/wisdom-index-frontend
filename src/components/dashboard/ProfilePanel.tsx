@@ -199,30 +199,8 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
 
     const currentData = isEditing ? editData : profileData;
 
-    return (
+return (
       <div className="flex flex-col gap-8">
-        {/* Save/Cancel buttons in edit mode */}
-        {isEditing && (
-          <div className="flex justify-end gap-3 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 shadow-sm">
-            <button
-              onClick={handleCancel}
-              disabled={saveLoading}
-              className="px-6 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={saveLoading}
-              className="px-6 py-2.5 text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-md hover:shadow-lg"
-            >
-              {saveLoading && (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              )}
-              {saveLoading ? 'Saving...' : 'Save Changes'}
-            </button>
-          </div>
-        )}
 
         {/* Error message */}
         {saveError && (
@@ -508,7 +486,7 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
           </div>
         </div>
 <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
-          {!isEditing && (
+          {!isEditing ? (
             <>
               <button
                 onClick={handleEditClick}
@@ -529,6 +507,26 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
                 </svg>
                 <span className="hidden sm:inline">Refresh Data</span>
                 <span className="sm:hidden">Refresh</span>
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={handleCancel}
+                disabled={saveLoading}
+                className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md text-sm sm:text-base"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saveLoading}
+                className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-2.5 text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg text-sm sm:text-base"
+              >
+                {saveLoading && (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                )}
+                {saveLoading ? 'Saving...' : 'Save Changes'}
               </button>
             </>
           )}
