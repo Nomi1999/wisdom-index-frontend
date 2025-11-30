@@ -180,11 +180,23 @@ margin={{
               dataKey="name"
               textAnchor={isMobile ? "end" : "middle"}
               height={compact ? 30 : (isMobile ? 60 : 50)}
-              tick={{ 
-                fontSize: compact ? 10 : (isComparison ? 13 : 12),
-                textAnchor: isMobile ? "end" : "middle",
-                dx: isMobile ? -5 : 0,
-                dy: isMobile ? 8 : 0
+              tick={(props: any) => {
+                const { x, y, payload } = props;
+                return (
+                  <g transform={`translate(${x},${y})`}>
+                    <text
+                      x={0}
+                      y={0}
+                      dy={16}
+                      textAnchor={isMobile ? "end" : "middle"}
+                      fill="#666"
+                      fontSize={compact ? 10 : (isComparison ? 13 : 12)}
+                      transform={isMobile ? "rotate(-45)" : ""}
+                    >
+                      {payload.value}
+                    </text>
+                  </g>
+                );
               }}
               interval={0}
             />
