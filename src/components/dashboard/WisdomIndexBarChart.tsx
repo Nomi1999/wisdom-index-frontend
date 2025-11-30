@@ -182,7 +182,7 @@ margin={{
               height={compact ? 30 : (isMobile ? 60 : 50)}
               tick={{ 
                 fontSize: compact ? 10 : (isComparison ? 13 : 12),
-                angle: isMobile ? -45 : 0,
+                textAnchor: isMobile ? "end" : "middle",
                 dx: isMobile ? -5 : 0,
                 dy: isMobile ? 8 : 0
               }}
