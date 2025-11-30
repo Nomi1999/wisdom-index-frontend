@@ -15,6 +15,7 @@ import {
 } from 'recharts';
 import { motion } from 'framer-motion';
 import { buildApiUrl } from '@/lib/api';
+import { useMobileDetection } from '@/hooks/useMobileDetection';
 
 interface BarChartData {
   name: string;
@@ -39,6 +40,7 @@ export const WisdomIndexBarChart: React.FC<WisdomIndexBarChartProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [clientNames, setClientNames] = useState<{client1: string, client2: string} | null>(null);
   const hasAnimatedOnceRef = useRef(false);
+  const { isMobile } = useMobileDetection();
 
   useEffect(() => {
     const fetchBarChartData = async () => {
@@ -166,19 +168,25 @@ export const WisdomIndexBarChart: React.FC<WisdomIndexBarChartProps> = ({
           <BarChart
             key={isComparison ? 'comparison-mode' : 'single-mode'}
             data={data}
-            margin={{
+margin={{
               top: compact ? 5 : 10,
               right: compact ? 10 : 20,
               left: compact ? 5 : 10,
-              bottom: compact ? 6 : 15,
+              bottom: compact ? 6 : (isMobile ? 60 : 15),
             }}
           >
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
+<XAxis
               dataKey="name"
-              textAnchor="middle"
-              height={compact ? 30 : 50}
-              tick={{ fontSize: compact ? 10 : (isComparison ? 13 : 12) }}
+              textAnchor={isMobile ? "end" : "middle"}
+              height={compact ? 30 : (isMobile ? 60 : 50)}
+              tick={{ 
+                fontSize: compact ? 10 : (isComparison ? 13 : 12),
+                angle: isMobile ? -45 : 0,
+                dx: isMobile ? -5 : 0,
+                dy: isMobile ? 8 : 0
+              }}
+              interval={0}
             />
             <YAxis
               tickFormatter={(value) => `${value}%`}
@@ -222,12 +230,12 @@ export const WisdomIndexBarChart: React.FC<WisdomIndexBarChartProps> = ({
                 fill="#3b82f6"
                 radius={[4, 4, 0, 0]}
               >
-                <LabelList
-                  dataKey="value"
-                  position="top"
-                  formatter={(value: number) => `${Math.round(value)}%`}
-                  style={{ fontSize: compact ? '11px' : '13px', fill: '#374151' }}
-                />
+<LabelList
+                   dataKey="value"
+                   position="top"
+                   formatter={(value: number) => `${Math.round(value)}%`}
+                   style={{ fontSize: compact ? '8px' : (isMobile ? '9px' : '13px'), fill: '#374151' }}
+                 />
               </Bar>
             )}
           </BarChart>

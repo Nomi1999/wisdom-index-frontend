@@ -14,8 +14,6 @@ import { TargetsManager } from './TargetsManager';
 import { AccountHistoryView } from './AccountHistoryView';
 import { VisualizationsView } from './VisualizationsView';
 import { ClientDashboardView } from '@/types/dashboard';
-import { useMobileDetection } from '@/hooks/useMobileDetection';
-import { MobileLoadingScreen } from './MobileLoadingScreen';
 import { MobileDashboard } from './MobileDashboard';
 import { MobileAIInsights } from './MobileAIInsights';
 import { MobileChartsView } from './MobileChartsView';
@@ -79,9 +77,10 @@ handleViewAccountHistory: () => void;
   isInitialLoad: boolean;
   metricsByCategory: Record<string, any[]>;
   hasGeneratedInsights: boolean;
-initialIncomeChartData: any[] | null;
+  initialIncomeChartData: any[] | null;
   initialExpenseChartData: any[] | null;
   chartsPrefetched: boolean;
+  isMobile: boolean;
 }
 
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
@@ -145,17 +144,20 @@ handleViewAccountHistory,
   hasGeneratedInsights,
 initialIncomeChartData,
   initialExpenseChartData,
-  chartsPrefetched
+  chartsPrefetched,
+  isMobile
 }) => {
-  const { isMobile, isLoading } = useMobileDetection();
   const collapsedSidebarWidth = isMobile ? 0 : 64; // Hide sidebar on mobile
   const isDashboardView = activeView === 'dashboard';
 
-  // Show loading screen while detecting device type
-  if (isLoading) {
-    return <MobileLoadingScreen />;
-  }
-
+  // Clean up any open category states when navigating away from dashboard
+  React.useEffect(() => {
+    if (!isDashboardView && isMobile) {
+      // Remove category-open class when navigating away from dashboard
+      document.body.classList.remove('category-open');
+      document.body.classList.remove('metric-detail-open');
+    }
+  }, [activeView, isDashboardView, isMobile]);
 const renderSecondaryView = () => {
     switch (activeView) {
       case 'profile':

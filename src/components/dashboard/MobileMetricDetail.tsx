@@ -409,8 +409,7 @@ export const MobileMetricDetail: React.FC<MobileMetricDetailProps> = ({
           {/* Content Area */}
           <div className="flex-1 overflow-y-auto mobile-metric-detail-content" style={{ 
             overflowY: 'auto',
-            WebkitOverflowScrolling: 'touch',
-            maxHeight: 'calc(100vh - 200px)'
+            WebkitOverflowScrolling: 'touch'
           }}>
             {loading ? (
               <div className="flex flex-col items-center justify-center h-64 text-slate-500">
@@ -433,7 +432,7 @@ export const MobileMetricDetail: React.FC<MobileMetricDetailProps> = ({
                 </button>
               </div>
             ) : metricDetail ? (
-              <div className="p-4 space-y-4">
+              <div className="p-4 space-y-4 pb-24">
                 {activeTab === 'overview' && (
                   <div className="space-y-4">
                     {/* Formula Card */}

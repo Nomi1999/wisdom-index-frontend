@@ -18,6 +18,28 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
   notificationCount = 0
 }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+
+  // Check if category is open by monitoring body class
+  React.useEffect(() => {
+    const checkCategoryOpen = () => {
+      setIsCategoryOpen(document.body.classList.contains('category-open'));
+    };
+
+    checkCategoryOpen();
+    
+    // Watch for class changes
+    const observer = new MutationObserver(() => {
+      checkCategoryOpen();
+    });
+    
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   const getInitials = (name: string) => {
     return name
@@ -28,8 +50,11 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
       .slice(0, 2);
   };
 
+  // Don't render header when category is open on mobile
+  if (isCategoryOpen) return null;
+
   return (
-    <header className="bg-gradient-to-r from-blue-950 to-blue-900 shadow-lg sticky top-0 z-50 backdrop-blur-md">
+    <header className="bg-gradient-to-r from-blue-950 to-blue-900 shadow-lg sticky top-0 z-40 backdrop-blur-md">
       <div className="px-4 py-3">
         <div className="flex items-center justify-between">
           {/* Left: Logo and Title (centered on mobile) */}

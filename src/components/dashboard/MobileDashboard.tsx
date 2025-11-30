@@ -128,6 +128,13 @@ export const MobileDashboard: React.FC<MobileDashboardProps> = ({
     };
   }, [expandedCategory]);
 
+  // Clean up category-open class when component unmounts or navigates away
+  React.useEffect(() => {
+    return () => {
+      document.body.classList.remove('category-open');
+    };
+  }, []);
+
   // Don't render on desktop
   if (!isMobile) return null;
 
@@ -392,7 +399,7 @@ export const MobileDashboard: React.FC<MobileDashboardProps> = ({
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: '100%', opacity: 0 }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed inset-0 z-50 bg-white overflow-hidden mobile-category-view"
+            className="fixed inset-0 z-[60] bg-white overflow-hidden mobile-category-view"
             style={{ 
               width: '100vw', 
               height: '100vh',
@@ -439,9 +446,9 @@ export const MobileDashboard: React.FC<MobileDashboardProps> = ({
                   <div className={`flex-1 overflow-y-auto ${category.bgColor} mobile-category-content`} style={{ 
                     overflowY: 'auto',
                     WebkitOverflowScrolling: 'touch',
-                    maxHeight: 'calc(100vh - 120px)' // Header height + bottom padding
+                    paddingTop: 'env(safe-area-inset-top)'
                   }}>
-                    <div className="p-4 space-y-4 pb-24">
+                    <div className="p-4 space-y-4 pb-32">
                       <AnimatePresence mode="popLayout">
                         {categoryMetrics.map((metric, index) => (
                           <motion.div

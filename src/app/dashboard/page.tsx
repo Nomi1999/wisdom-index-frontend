@@ -68,16 +68,24 @@ const metricsByCategory = {
   ]
 };
 
+// Global cache variables (outside component)
+let globalMetricsCache: Record<string, any> | null = null;
+let globalTargetsCache: Record<string, number> | null = null;
+let globalChartIncomeCache: any[] | null = null;
+let globalChartExpenseCache: any[] | null = null;
+let globalIsMobileCache: boolean | null = null;
+let globalClientNameCache: string | null = null;
+
 export default function Dashboard() {
   const router = useRouter();
   const [authToken, setAuthToken] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const [clientName, setClientName] = useState('Loading...');
-  const [metricsData, setMetricsData] = useState<Record<string, any>>({});
-  const [loading, setLoading] = useState(true);
-  const [metricsLoaded, setMetricsLoaded] = useState(false);
-  const [targetsLoaded, setTargetsLoaded] = useState(false);
+  const [clientName, setClientName] = useState(globalClientNameCache || 'Loading...');
+  const [metricsData, setMetricsData] = useState<Record<string, any>>(globalMetricsCache || {});
+  const [loading, setLoading] = useState(!globalMetricsCache);
+  const [metricsLoaded, setMetricsLoaded] = useState(!!globalMetricsCache);
+  const [targetsLoaded, setTargetsLoaded] = useState(!!globalTargetsCache);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [exportStatus, setExportStatus] = useState<'idle' | 'exporting' | 'exported'>('idle');
   const exportTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -88,7 +96,7 @@ export default function Dashboard() {
   const [hasGeneratedInsights, setHasGeneratedInsights] = useState(false);
   const [insightsSlideUp, setInsightsSlideUp] = useState(false);
   const [activeView, setActiveView] = useState<ClientDashboardView>('dashboard');
-  const [isDeviceDetected, setIsDeviceDetected] = useState(false);
+  const [isDeviceDetected, setIsDeviceDetected] = useState(globalIsMobileCache !== null);
 
   // Profile data state
   const [profileLoading, setProfileLoading] = useState(false);
@@ -108,6 +116,8 @@ export default function Dashboard() {
       const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
       const isMobileDevice = mobileRegex.test(userAgent) || width <= 768;
       
+      globalIsMobileCache = isMobileDevice;
+
       // Small delay to ensure consistent rendering
       setTimeout(() => {
         setIsDeviceDetected(true);
@@ -120,8 +130,8 @@ export default function Dashboard() {
 
   // Targets management state
   const [targetsLoading, setTargetsLoading] = useState(false);
-  const [targetsData, setTargetsData] = useState<Record<string, number>>({});
-  const [originalTargetsData, setOriginalTargetsData] = useState<Record<string, number>>({});
+  const [targetsData, setTargetsData] = useState<Record<string, number>>(globalTargetsCache || {});
+  const [originalTargetsData, setOriginalTargetsData] = useState<Record<string, number>>(globalTargetsCache || {});
   const [targetsError, setTargetsError] = useState(false);
   const [saveTargetsLoading, setSaveTargetsLoading] = useState(false);
   const [resetTargetsLoading, setResetTargetsLoading] = useState(false);
@@ -142,10 +152,10 @@ export default function Dashboard() {
     income: any[] | null;
     expense: any[] | null;
   }>({
-    income: null,
-    expense: null
+    income: globalChartIncomeCache,
+    expense: globalChartExpenseCache
   });
-  const [chartsPrefetched, setChartsPrefetched] = useState(false);
+  const [chartsPrefetched, setChartsPrefetched] = useState(!!globalChartIncomeCache || !!globalChartExpenseCache);
 
   const isMountedRef = useRef(true);
 
@@ -313,23 +323,43 @@ export default function Dashboard() {
     }));
   };
 
-  // Intercept back button to logout automatically (same behavior as logout button)
+// Manage browser history for view navigation and back button handling
   useEffect(() => {
-    // Push a dummy state to intercept back button
-    window.history.pushState({ preventBack: true }, '', window.location.href);
+    // Push initial state when component mounts
+    window.history.pushState({ view: 'dashboard', preventBack: true }, '', window.location.href);
 
     const handlePopState = (event: PopStateEvent) => {
-      // User clicked back - cancel it by going forward and then logout
-      console.log('[Dashboard] Back button pressed, cancelling and logging out');
+      const state = event.state;
+      
+      if (!state) {
+        // No state means user went back to initial entry - logout
+        console.log('[Dashboard] Back button pressed to initial state, logging out');
+        setTimeout(() => {
+          removeToken();
+          window.location.replace('/login');
+        }, 0);
+        return;
+      }
 
-      // Cancel the back navigation by immediately going forward
-      window.history.go(1);
-
-      // Then logout with replace (same as logout button)
-      setTimeout(() => {
-        removeToken();
-        window.location.replace('/login');
-      }, 0);
+      if (state.view) {
+        // Navigate to the view in the history state
+        console.log('[Dashboard] Back button pressed, navigating to view:', state.view);
+        setActiveView(state.view);
+        
+        // If navigating back to dashboard, push a new state to prevent further back navigation
+        if (state.view === 'dashboard') {
+          setTimeout(() => {
+            window.history.pushState({ view: 'dashboard', preventBack: true }, '', window.location.href);
+          }, 0);
+        }
+      } else if (state.preventBack) {
+        // Legacy behavior - logout
+        console.log('[Dashboard] Back button pressed on preventBack state, logging out');
+        setTimeout(() => {
+          removeToken();
+          window.location.replace('/login');
+        }, 0);
+      }
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -337,7 +367,7 @@ export default function Dashboard() {
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
-  }, []);
+  }, []); // Only run once on mount
 
 // Use session auth hook for validation
   const { isValid: sessionValid, isLoading: sessionLoading, user: sessionUser } = useSessionAuth({
@@ -516,9 +546,13 @@ useEffect(() => {
     setChartsPrefetched(false);
 
     const loadDashboardSummary = async () => {
-      setLoading(true);
-      setMetricsLoaded(false);
-      setTargetsLoaded(false);
+      // Only show loading spinner if we don't have data
+      if (!globalMetricsCache) {
+        setLoading(true);
+      }
+      // Do not reset loaded flags if we have cached data
+      // setMetricsLoaded(false);
+      // setTargetsLoaded(false);
 
       try {
         const response = await fetch(buildApiUrl('/api/dashboard/summary'), {
@@ -538,6 +572,7 @@ useEffect(() => {
 
         if (data.client_name) {
           setClientName(data.client_name);
+          globalClientNameCache = data.client_name;
         } else {
           setClientName('Client');
         }
@@ -546,8 +581,16 @@ useEffect(() => {
         const targetsPayload = data.targets || {};
         const nextMetrics = buildMetricsState(metricsPayload, targetsPayload);
         setMetricsData(nextMetrics);
+        globalMetricsCache = nextMetrics;
         setMetricsLoaded(true);
         setTargetsLoaded(true);
+        
+        // Update targets cache separately if needed, though metricsData contains combined info
+        // We also set targetsData for the manager view
+        // Note: targetsPayload is raw target values, metricsPayload is raw metric values
+        setTargetsData(targetsPayload);
+        globalTargetsCache = targetsPayload;
+        setOriginalTargetsData({ ...targetsPayload });
 
         const normalizedIncome = normalizeChartData(data.charts?.income, 'income');
         const normalizedExpense = normalizeChartData(data.charts?.expense, 'expense');
@@ -563,6 +606,10 @@ useEffect(() => {
           income: normalizedIncome ?? null,
           expense: normalizedExpense ?? null
         });
+        
+        globalChartIncomeCache = normalizedIncome ?? null;
+        globalChartExpenseCache = normalizedExpense ?? null;
+        
       } catch (error) {
         if (isMountedRef.current) {
           console.error('Error loading dashboard summary:', error);
@@ -792,11 +839,18 @@ useEffect(() => {
       ...prev,
       [chartType]: data
     }));
+    
+    if (chartType === 'income') {
+      globalChartIncomeCache = data;
+    } else {
+      globalChartExpenseCache = data;
+    }
   };
 
-  // Profile view
+// Profile view
   const handleViewProfile = () => {
     setSidebarOpen(false);
+    window.history.pushState({ view: 'profile' }, '', window.location.href);
     setActiveView('profile');
     loadProfileData();
   };
@@ -832,15 +886,17 @@ useEffect(() => {
     }
   };
 
-  // Contact Advisor view
+// Contact Advisor view
   const handleContactAdvisor = () => {
     setSidebarOpen(false);
+    window.history.pushState({ view: 'advisor' }, '', window.location.href);
     setActiveView('advisor');
   };
 
-  // Targets view
+// Targets view
   const handleManageTargets = () => {
     setSidebarOpen(false);
+    window.history.pushState({ view: 'targets' }, '', window.location.href);
     setActiveView('targets');
     loadTargetsData();
   };
@@ -1052,28 +1108,32 @@ useEffect(() => {
     setSelectedCategoryName('');
   };
 
-  // Account History view
+// Account History view
   const handleViewAccountHistory = () => {
     setSidebarOpen(false);
+    window.history.pushState({ view: 'account-history' }, '', window.location.href);
     setActiveView('account-history');
   };
 
 // Visualizations view
   const handleViewVisualizations = () => {
     setSidebarOpen(false);
+    window.history.pushState({ view: 'visualizations' }, '', window.location.href);
     setActiveView('visualizations');
   };
 
   // AI Insights view
   const handleViewAIInsights = () => {
     setSidebarOpen(false);
+    window.history.pushState({ view: 'ai-insights' }, '', window.location.href);
     setActiveView('ai-insights');
     // Just navigate to the AI insights page without auto-generating
     // User will need to click the "Generate Insights" button manually
   };
 
-  const handleShowDashboard = () => {
+const handleShowDashboard = () => {
     setSidebarOpen(false);
+    window.history.pushState({ view: 'dashboard', preventBack: true }, '', window.location.href);
     setActiveView('dashboard');
   };
 
@@ -1364,6 +1424,7 @@ handleViewAccountHistory={handleViewAccountHistory}
 initialIncomeChartData={chartDataCache.income}
         initialExpenseChartData={chartDataCache.expense}
         chartsPrefetched={chartsPrefetched}
+        isMobile={isMobile}
       />
 
 {/* Metric Detail Modal - Desktop Only */}
