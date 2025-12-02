@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { AccountSelector } from '../dashboard/AccountSelector';
 import { TimeSeriesChart } from '../dashboard/TimeSeriesChart';
 import { HistoryTable } from '../dashboard/HistoryTable';
-import { DateRangePicker } from '../dashboard/DateRangePicker';
+import { MonthRangePicker } from '../dashboard/MonthRangePicker';
 import { ExportControls } from '../dashboard/ExportControls';
 import { buildApiUrl } from '@/lib/api';
 
@@ -212,7 +212,7 @@ return (
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">Date Range</label>
-            <DateRangePicker
+            <MonthRangePicker
               startDate={startDate}
               endDate={endDate}
               onDateChange={handleDateRangeChange}
@@ -364,10 +364,9 @@ return (
                       if (historyData.length === 0) return 'No data';
                       const firstDate = new Date(historyData[0].as_of_date);
                       const lastDate = new Date(historyData[historyData.length - 1].as_of_date);
-                      const formatDate = (date: Date) => date.toLocaleDateString('en-US', { 
-                        month: 'short', 
-                        day: 'numeric', 
-                        year: 'numeric' 
+                      const formatDate = (date: Date) => date.toLocaleDateString('en-US', {
+                        month: 'short',
+                        year: 'numeric'
                       });
                       return `${formatDate(lastDate)} - ${formatDate(firstDate)}`;
                     })()}
